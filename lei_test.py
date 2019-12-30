@@ -1,5 +1,5 @@
 import torch
-from rules import Rules
+from rules import RuleBase
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
@@ -9,7 +9,7 @@ Y = torch.randn(50, 6)
 a = torch.tensor(cdist(X, Y))
 b = torch.argmax(a, 1)
 
-rules = Rules(X, 50)
+rules = RuleBase(X, 50)
 rules.x_rule_idx
 kmeans = KMeans(5).fit(X)
 kmeans.set_params
