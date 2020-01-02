@@ -65,6 +65,3 @@ class KmeansUtils(object):
         center_optimal = center_global
 
         return center_optimal, errors
-
-
-
