@@ -14,10 +14,12 @@ class RuleBase(object):
         n_rules: the number of rules, namely the number of cluster centers
         center_list: the list of cluster centers
         consequent_list: list of consequent layer
+        x_center_idx: the labels of which center traning data belongs to
         """
         self.n_rules = 0
         self.center_list = None
         self.consequent_list = None
+        self.x_center_idx = None
 
     @abc.abstractmethod
     def fit(self, x, n_rules=5):
@@ -44,10 +46,8 @@ class RuleKmeans(RuleBase):
     def __init__(self):
         """
         widths_list: standard deviation of each clusters
-        x_center_idx: the labels of which center traning data belongs to
         """
         super(RuleKmeans, self).__init__()
-        self.x_center_idx = None
         self.widths_list = None
 
     def fit(self, x, n_rules=5):
@@ -154,8 +154,8 @@ class RuleFuzzyCmeans(RuleKmeans):
         self.n_rules = n_rules
         self.center_list = torch.tensor(center_list)
         self.data_partition = torch.tensor(data_partition).t()
+        self.x_center_idx = torch.argmax(self.data_partition, 1)
         self.consequent_list = None
-        self.widths_list = self.get_widths_list(x)
 
     def update_rules(self, x, center):
         """
@@ -169,3 +169,4 @@ class RuleFuzzyCmeans(RuleKmeans):
         data_partition, _, _, _, _, _ = \
             cmeans_predict(x.t(), center, 2, error=0.005, maxiter=1000)
         self.data_partition = torch.tensor(data_partition).t()
+        self.x_center_idx = torch.argmax(self.data_partition, 1)

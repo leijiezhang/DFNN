@@ -111,11 +111,11 @@ class Dataset(object):
 
     def distribute_dataset(self):
         d_train_data = []
+        x = self.X
+        y = self.Y
+        disp_partition = self.distry_partitions
         for i in torch.arange(self.n_agents):
-            disp_partition = self.distry_partitions
             disp_partition.set_current_folds(i)
-            x = self.X
-            y = self.Y
             disp_part_idx = disp_partition.get_test_indexes()
             disp_part_dataset = Dataset(f"{self.name}_distry", x[disp_part_idx[0], :],
                                         y[disp_part_idx[0], :], self.task)

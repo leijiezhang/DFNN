@@ -1,6 +1,6 @@
 import torch
 from param_config import ParamConfig
-from utils import compute_h
+from utils import compute_h, compute_h_fc
 from loss_function import LossFunc
 from dataset import Dataset
 from rules import RuleBase
@@ -28,9 +28,7 @@ class FnnKmeansTools(object):
                                       self.para_mu * torch.eye(n_rule * n_fea)).mm(h_cal.t().mm(y))
         w_optimal = w_comb_optimal.reshape(n_rule, n_fea)
 
-        # calculate Y hat
-        y_hat = h_cal.mm(w_comb_optimal)
-        return w_optimal, y_hat
+        return w_optimal
 
     def fnn_solve_c(self, h: torch.Tensor, y):
         """
@@ -169,11 +167,20 @@ class FnnKmeansTools(object):
                     lagrange_mul_norm.max() and primal_criterion.max() == 1:
                 break
         # w_cal = w_cal.reshape(n_node, n_rules, (n_fea + 1))
-        return w_cal, z, errors
+        return w_cal, z.reshape(n_rules, (n_fea + 1)), errors
 
     @staticmethod
     def fnn_loss(data: Dataset, rules: RuleBase, w, loss_function: LossFunc):
         h = compute_h(data.X, rules)
+        h = h.permute(1, 0, 2)
+        h = h.reshape(h.shape[0], -1)
+        y_hat = h.mm(w.unsqueeze(1))
+        loss = loss_function(data.Y, y_hat)
+        return loss
+
+    @staticmethod
+    def fnn_loss_fc(data: Dataset, rules: RuleBase, w, loss_function: LossFunc):
+        h = compute_h_fc(data.X, rules)
         h = h.permute(1, 0, 2)
         h = h.reshape(h.shape[0], -1)
         y_hat = h.mm(w.unsqueeze(1))
