@@ -3,7 +3,7 @@ from partition import KFoldPartition
 from dataset import Dataset
 from loss_function import LossFunc, RMSELoss
 from kmeans_tools import KmeansUtils
-from utils import compute_h_fc, compute_loss
+from utils import compute_h_fc, compute_loss_fc
 from fnn_tools import FnnKmeansTools
 from rules import RuleFuzzyCmeans
 import torch
@@ -46,17 +46,17 @@ for k in torch.arange(param_setting.kfolds):
     d_train_data = train_data.distribute_dataset()
 
     def fnn_main(train_data: Dataset, test_data: Dataset, n_rules, mu, loss_function: LossFunc):
-        rules = RuleFuzzyCmeans()
-        rules.fit(train_data.X, n_rules)
-        h_train = compute_h_fc(train_data.X, rules)
+        rules_train = RuleFuzzyCmeans()
+        rules_train.fit(train_data.X, n_rules)
+        h_train = compute_h_fc(train_data.X, rules_train)
         # run FNN solver for given rule number
         fnn_tools = FnnKmeansTools(mu)
         w_optimal = fnn_tools.fnn_solve_r(h_train, train_data.Y)
-        rules.consequent_list = w_optimal
+        rules_train.consequent_list = w_optimal
 
         # compute loss
-        loss = compute_loss(test_data, rules, loss_function)
-        return loss, rules
+        loss = compute_loss_fc(test_data, rules_train, loss_function)
+        return loss, rules_train
 
 
     # trainning global method
@@ -89,7 +89,7 @@ for k in torch.arange(param_setting.kfolds):
                                                         w_all_agent, h_all_agent)
     # calculate loss
     d_rules.consequent_list = z
-    cfnn_loss = compute_loss(test_data, d_rules, RMSELoss())
+    cfnn_loss = compute_loss_fc(test_data, d_rules, RMSELoss())
     loss_dlist.append(cfnn_loss)
 
 data_save = dict()

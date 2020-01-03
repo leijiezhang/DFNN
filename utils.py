@@ -51,12 +51,30 @@ def compute_h_fc(x, rules: RuleFuzzyCmeans):
     return h
 
 
-def compute_loss(test_data: Dataset, rules_test: RuleBase, loss_function: LossFunc):
+def compute_loss_fc(test_data: Dataset, rules_test: RuleBase, loss_function: LossFunc):
     """
     """
     # update rules on test data
     rules_test.update_rules(test_data.X, rules_test.center_list)
     h_test = compute_h_fc(test_data.X, rules_test)
+    n_rule = h_test.shape[0]
+    n_smpl = h_test.shape[1]
+    n_fea = h_test.shape[2]
+    h_cal = h_test.permute((1, 0, 2))  # N * n_rules * (d + 1)
+    h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
+
+    # calculate Y hat
+    y_hat = h_cal.mm(rules_test.consequent_list.reshape(n_rule * n_fea, -1))
+    loss = loss_function(test_data.Y, y_hat)
+    return loss
+
+
+def compute_loss_k(test_data: Dataset, rules_test: RuleBase, loss_function: LossFunc):
+    """
+    """
+    # update rules on test data
+    rules_test.update_rules(test_data.X, rules_test.center_list)
+    h_test = compute_h(test_data.X, rules_test)
     n_rule = h_test.shape[0]
     n_smpl = h_test.shape[1]
     n_fea = h_test.shape[2]

@@ -94,7 +94,7 @@ class Dataset(object):
             y = self.Y
         partition_strategy = self.partitions[self.current_partition]
         if n_fold is not None:
-            partition_strategy = partition_strategy.set_current_folds(n_fold)
+            partition_strategy.set_current_folds(n_fold)
         train_idx = partition_strategy.get_train_indexes()
         text_idx = partition_strategy.get_test_indexes()
         train_name = f"{self.name}_train"
