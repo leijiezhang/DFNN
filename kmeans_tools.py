@@ -15,9 +15,9 @@ class KmeansUtils(object):
         rho = 1
         max_steps = 300
         admm_reltol = 0.001
-        admm_abstol = 0.001
+        admm_abstol = 0.0001
 
-        errors = torch.zeros(max_steps, 1)
+        errors = []
         # initiate lagrange multiplier
         lagrange_mul = torch.zeros(n_agents, n_rules, data[1].X.shape[1])
         # initiate global term centrio mu
@@ -58,10 +58,10 @@ class KmeansUtils(object):
             # check stoping criterion
             stop_crtn = - rho * (center_global - center_global_old)
 
-            errors[i] = torch.norm(stop_crtn)
+            errors.append(torch.norm(stop_crtn))
 
             if errors[i] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
                 break
         center_optimal = center_global
 
-        return center_optimal, errors
+        return center_optimal, torch.tensor(errors)

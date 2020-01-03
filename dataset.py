@@ -24,6 +24,7 @@ class Dataset(object):
         self.distry_partitions: PartitionStrategy = []
         self.current_partition = 0
         self.n_agents = 1  # use only if get distribute dataset, this denotes the number of distribute
+        self.n_fea = self.X.shape[1]
 
     def shuffle(self, n):
         len_y = self.Y.shape[0]
