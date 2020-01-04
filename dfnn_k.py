@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from partition import KFoldPartition
 from dataset import Dataset
-from loss_function import LossFunc, RMSELoss
+from loss_function import LossFunc
 from kmeans_tools import KmeansUtils
 from utils import compute_h, compute_loss_k
 from fnn_tools import FnnKmeansTools
@@ -9,13 +9,16 @@ from rules import RuleKmeans
 import torch
 
 
-def dfnn_k_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldPartition, dataset: Dataset):
+def dfnn_k_method(n_rules, param_setting: ParamConfig,
+                   patition_strategy: KFoldPartition,
+                   dataset: Dataset, loss_func: LossFunc):
     """
     todo: this is the method for distribute fuzzy neural network using normal kmeans
     :param param_setting:
     :param patition_strategy:
     :param dataset:
     :param n_rules:
+    :param loss_func:
     :return:
     """
     loss_list = []
@@ -34,7 +37,7 @@ def dfnn_k_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldP
             h_train = compute_h(train_data.X, rules_train)
             # run FNN solver for given rule number
             fnn_tools = FnnKmeansTools(mu)
-            w_optimal = fnn_tools.fnn_solve_r(h_train, train_data.Y)
+            w_optimal = fnn_tools.fnn_solve_r(h_train, train_data.Y.double())
             rules_train.consequent_list = w_optimal
 
             # compute loss
@@ -43,7 +46,7 @@ def dfnn_k_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldP
 
         # trainning global method
         loss, rules = fnn_main(train_data, test_data, param_setting.n_rules,
-                               param_setting.para_mu, RMSELoss())
+                               param_setting.para_mu, loss_func)
         loss_list.append(loss)
 
         # train distributed fnn
@@ -56,14 +59,16 @@ def dfnn_k_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldP
         fnn_tools = FnnKmeansTools(param_setting.para_mu)
         n_fea = train_data.X.shape[1]
         h_all_agent = []
-        w_all_agent = torch.empty((0, param_setting.n_rules, n_fea + 1)).double()
+        # the shape of w set is n_agents *  n_output * n_rules * len_w
+        w_all_agent = torch.empty((0, train_data.Y.shape[1],
+                                   param_setting.n_rules, n_fea + 1)).double()
 
         for i in torch.arange(param_setting.n_agents):
             d_rules.update_rules(d_train_data[i].X, center_optimal)
             h_per_agent = compute_h(d_train_data[i].X, d_rules)
             h_all_agent.append(h_per_agent)
 
-            w_optimal_per_agent = fnn_tools.fnn_solve_r(h_per_agent, d_train_data[i].Y)
+            w_optimal_per_agent = fnn_tools.fnn_solve_r(h_per_agent, d_train_data[i].Y.double())
             w_all_agent = torch.cat((w_all_agent, w_optimal_per_agent.unsqueeze(0)), 0)
 
         w_optimal_all_agent, z, errors = fnn_tools.fnn_admm(d_train_data,
@@ -71,7 +76,7 @@ def dfnn_k_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldP
                                                             w_all_agent, h_all_agent)
         # calculate loss
         d_rules.consequent_list = z
-        cfnn_loss = compute_loss_k(test_data, d_rules, RMSELoss())
+        cfnn_loss = compute_loss_k(test_data, d_rules, loss_func)
         loss_dlist.append(cfnn_loss)
 
     loss_list = torch.tensor(loss_list)

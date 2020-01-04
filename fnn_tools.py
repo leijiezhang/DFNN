@@ -26,7 +26,8 @@ class FnnKmeansTools(object):
         h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
         w_comb_optimal = torch.inverse(h_cal.t().mm(h_cal) +
                                       self.para_mu * torch.eye(n_rule * n_fea)).mm(h_cal.t().mm(y))
-        w_optimal = w_comb_optimal.reshape(n_rule, n_fea)
+        w_comb_optimal = w_comb_optimal.permute((1, 0))
+        w_optimal = w_comb_optimal.reshape(y.shape[1], n_rule, n_fea)
 
         return w_optimal
 
@@ -115,17 +116,18 @@ class FnnKmeansTools(object):
         n_node = param_setting.n_agents
         n_rules = param_setting.n_rules
         n_fea = d_train_data[1].X.shape[1]
+        n_output = d_train_data[1].Y.shape[1]
 
         len_w = n_rules * (n_fea + 1)
 
         errors = torch.zeros(max_steps, n_node)
         
-        z = torch.zeros(len_w)
-        lagrange_mul = torch.zeros(n_node, len_w)
+        z = torch.zeros(n_output, len_w)
+        lagrange_mul = torch.zeros(n_node, n_output, len_w)
 
         # precompute the matrices
         h_inv = torch.zeros(n_node, len_w, len_w)
-        h_y = torch.zeros(n_node, len_w)
+        h_y = torch.zeros(n_node, n_output, len_w)
 
         for i in torch.arange(n_node):
             h_tmp = h[i]
@@ -133,13 +135,13 @@ class FnnKmeansTools(object):
             h_cal = h_tmp.permute((1, 0, 2))  # N * n_rules * (d + 1)
             h_cal = h_cal.reshape(n_smpl, len_w)
             h_inv[i, :, :] = torch.inverse(torch.eye(len_w) * rho + h_cal.t().mm(h_cal))
-            h_y[i, :] = h_cal.t().mm(d_train_data[i].Y).t()
+            h_y[i, :, :] = h_cal.t().mm(d_train_data[i].Y.double()).t()
 
         for i in torch.arange(max_steps):
             for j in torch.arange(n_node):
-                w_cal = w.reshape(n_node, len_w)
-                w_cal[j, :] = h_inv[j, :, :].double().mm((h_y[j, :].double() +
-                                                          rho * z - lagrange_mul[j, :]).unsqueeze(1)).squeeze()
+                w_cal = w.reshape(n_node, n_output, len_w)
+                w_cal[j, :, :] = h_inv[j, :, :].double().mm((h_y[j, :, :].double() +
+                                                          rho * z - lagrange_mul[j, :, :]).t()).t()
 
             # store the old z while update it
             z_old = z.clone()
@@ -147,7 +149,7 @@ class FnnKmeansTools(object):
 
             # compute the update for the lagrangian multipliers
             for j in torch.arange(n_node):
-                lagrange_mul[j, :] = lagrange_mul[j, :] + rho * (w_cal[j, :] - z)
+                lagrange_mul[j, :, :] = lagrange_mul[j, :, :] + rho * (w_cal[j, :, :] - z)
 
             # check stopping criterion
             z_norm = rho * (z - z_old)
@@ -161,13 +163,13 @@ class FnnKmeansTools(object):
                 if errors[i, j] < torch.sqrt(torch.tensor(n_node).float()) * admm_abstol + \
                         admm_reltol * torch.max(torch.norm(w[j, :], 2), torch.norm(z, 2)):
                     primal_criterion[j] = 1
-                lagrange_mul_norm[j] = torch.norm(lagrange_mul[j, :], 2)
+                lagrange_mul_norm[j] = torch.norm(lagrange_mul[j, :, :], 2)
 
             if torch.norm(z_norm) < torch.sqrt(torch.tensor(n_node).float()) * admm_abstol + admm_reltol * \
                     lagrange_mul_norm.max() and primal_criterion.max() == 1:
                 break
         # w_cal = w_cal.reshape(n_node, n_rules, (n_fea + 1))
-        return w_cal, z.reshape(n_rules, (n_fea + 1)), errors
+        return w_cal, z.reshape(n_output, n_rules, (n_fea + 1)), errors
 
     @staticmethod
     def fnn_loss(data: Dataset, rules: RuleBase, w, loss_function: LossFunc):
