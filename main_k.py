@@ -35,7 +35,7 @@ dataset.generate_n_partitions(param_setting.runs, patition_strategy)
 
 # loss_list, loss_dlist, loss_admm_list = dfnn_k_method(5, param_setting, patition_strategy, dataset)
 
-loss_list, loss_dlist, loss_admm_list = dfnn_k_ite_rules(10, param_setting, patition_strategy, dataset)
+loss_list, loss_dlist, loss_admm_list = dfnn_k_ite_rules(15, param_setting, patition_strategy, dataset)
 
 data_save = dict()
 data_save['loss_list'] = loss_list
