@@ -15,18 +15,20 @@ class ParamConfig(object):
 
         self.n_rules = nrules  # number of rules in stage 1
         self.n_rules_s2 = nrules_s2  # number of rules in stage 2
-
+        self.dataset_list = ['abalone', 'airfoil', 'bikesharing',
+                             'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1_format',
+                             'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
+                             'kc_house', 'motor_temperature', 'quake', 'skills',
+                             'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
         self.para_mu = 0
 
     def load_data(self, dataset_str):
-        dir_dataset = f"./datasets/{dataset_str}.mat"
-        load_data = sio.loadmat(dir_dataset)
-        dataset_name = load_data['name'][0]
-        x_orig = load_data['X']
-        y_orig = load_data['Y']
-        x = torch.tensor(x_orig)
-        y = torch.tensor(y_orig)
-        task = load_data['task'][0]
+        dir_dataset = f"./datasets/{dataset_str}.py"
+        load_data = torch.load(dir_dataset)
+        dataset_name = load_data['name']
+        x = load_data['X']
+        y = load_data['Y']
+        task = load_data['task']
         dataset = None
         if dataset_name == 'airfoil':
 
