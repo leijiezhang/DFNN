@@ -33,9 +33,9 @@ dataset = param_setting.load_data(dataset_file)
 patition_strategy = KFoldPartition(param_setting.kfolds)
 dataset.generate_n_partitions(param_setting.runs, patition_strategy)
 
-# loss_list, loss_dlist, loss_admm_list = dfnn_fc_method(10, param_setting, patition_strategy, dataset)
+loss_list, loss_dlist, loss_admm_list = dfnn_fc_method(10, param_setting, patition_strategy, dataset)
 
-loss_list, loss_dlist, loss_admm_list = dfnn_fc_ite_rules(15, param_setting, patition_strategy, dataset)
+# loss_list, loss_dlist, loss_admm_list = dfnn_fc_ite_rules(10, param_setting, patition_strategy, dataset)
 
 data_save = dict()
 data_save['loss_list'] = loss_list
@@ -44,6 +44,6 @@ data_save['loss_dlist'] = loss_dlist
 data_save_dir = "./results/"
 if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}{dataset_file}_fc.pt"
+data_save_file = f"{data_save_dir}{dataset_file}.pt"
 torch.save(data_save, data_save_file)
 

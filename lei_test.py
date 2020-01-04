@@ -1,14 +1,10 @@
 import torch
-from rules import RuleBase
-from sklearn.cluster import KMeans
-from scipy.spatial.distance import cdist
+from utils import dataset_parse
 
+dataset_list = ['blog', 'housing', 'strength', 'yacht']
+for i in torch.arange(len(dataset_list)):
+    dataset_name = dataset_list[i]
 
+    dataset_parse(dataset_name)
 
-dataset_file = 'CASP_k5'
-data_save_dir = f"./results/{dataset_file}.pt"
-data_5 = torch.load(data_save_dir)
-dataset_file = 'CASP_k10'
-data_save_dir = f"./results/{dataset_file}.pt"
-data_10 = torch.load(data_save_dir)
 print('lei')
