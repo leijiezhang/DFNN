@@ -33,14 +33,12 @@ class KmeansUtils(object):
                 # ye's method
                 # dist_x = center_global.centerl(center_global) / 2 - center_global.mm(data[j].X.t())
                 # labels = torch.min(dist_x, 0)[1]
-
+                rules.update_rules(data[j].X, center_global)
                 labels = rules.x_center_idx
-                labels_matrix = torch.zeros(n_rules, data[j].X.shape[0])
-                for k in torch.arange(data[j].X.shape[0]):
-                    labels_matrix[labels[k].long(), k] = 1
-                labels_matrix = torch.nn.functional.normalize(labels_matrix, 2, 1)
-
-                center_agent_set[j, :, :] = labels_matrix.double().mm(data[j].X)
+                for k in torch.arange(n_rules):
+                    label_ids = torch.where(labels == k)
+                    smpl_k = data[j].X[label_ids[0], :]
+                    center_agent_set[j, k, :] = smpl_k.mean(0)
 
             # store the old global centrio and update
             center_global_old = center_global.clone()
