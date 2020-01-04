@@ -33,10 +33,7 @@ class MapLoss(LossFunc):
 
     def forward(self, yhat, y):
         yhat_idx = torch.argmax(yhat, 1)
-        y_unique = torch.unique(y)
-        yhat_cal = y.clone()
-        for i in torch.arange(yhat.shape[1]):
-            y_idx = torch.where(yhat_idx == i)
-            yhat_cal[y_idx] = y_unique[i]
-        loss = 1 - (torch.sum(torch.where(yhat_cal == y)) / yhat.shape[0])
+        y_idx = torch.argmax(y, 1)
+        acc_num = torch.where(yhat_idx == y_idx)[0].shape[0]
+        loss = 1 - (acc_num / y_idx.shape[0])
         return loss

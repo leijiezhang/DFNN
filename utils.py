@@ -65,8 +65,8 @@ def compute_loss_fc(test_data: Dataset, rules_test: RuleBase, loss_function: Los
     h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
 
     # calculate Y hat
-    y_hat = h_cal.mm(rules_test.consequent_list.reshape(n_rule * n_fea, -1))
-    loss = loss_function(test_data.Y, y_hat)
+    y_hat = h_cal.mm(rules_test.consequent_list.reshape(test_data.Y.shape[1], n_rule * n_fea).t())
+    loss = loss_function.forward(test_data.Y, y_hat)
     return loss
 
 
@@ -83,8 +83,8 @@ def compute_loss_k(test_data: Dataset, rules_test: RuleBase, loss_function: Loss
     h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
 
     # calculate Y hat
-    y_hat = h_cal.mm(rules_test.consequent_list.reshape(n_rule * n_fea, -1))
-    loss = loss_function(test_data.Y, y_hat)
+    y_hat = h_cal.mm(rules_test.consequent_list.reshape(test_data.Y.shape[1], n_rule * n_fea).t())
+    loss = loss_function.forward(test_data.Y, y_hat)
     return loss
 
 
@@ -118,6 +118,6 @@ def dataset_parse(dataset_name):
         data_save['Y_r'] = y
         data_save['Y'] = y_c
     else:
-        data_save['Y'] = y
+        data_save['Y'] = y.unsqueeze(1)
     dir_dataset = f"./datasets/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)

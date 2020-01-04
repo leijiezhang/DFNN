@@ -59,14 +59,16 @@ def dfnn_fc_method(n_rules, param_setting: ParamConfig,
         fnn_tools = FnnKmeansTools(param_setting.para_mu)
         n_fea = train_data.X.shape[1]
         h_all_agent = []
-        w_all_agent = torch.empty((0, param_setting.n_rules, n_fea + 1)).double()
+        # the shape of w set is n_agents *  n_output * n_rules * len_w
+        w_all_agent = torch.empty((0, train_data.Y.shape[1],
+                                   param_setting.n_rules, n_fea + 1)).double()
 
         for i in torch.arange(param_setting.n_agents):
             d_rules.update_rules(d_train_data[i].X, center_optimal)
             h_per_agent = compute_h_fc(d_train_data[i].X, d_rules)
             h_all_agent.append(h_per_agent)
 
-            w_optimal_per_agent = fnn_tools.fnn_solve_r(h_per_agent, d_train_data[i].Y)
+            w_optimal_per_agent = fnn_tools.fnn_solve_r(h_per_agent, d_train_data[i].Y.double())
             w_all_agent = torch.cat((w_all_agent, w_optimal_per_agent.unsqueeze(0)), 0)
 
         w_optimal_all_agent, z, errors = fnn_tools.fnn_admm(d_train_data,
