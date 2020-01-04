@@ -15,7 +15,7 @@ import os
 # dataset_file = 'airfoil.mat'
 #  # Dataset to load
 # dataset_file = 'CCPP.mat'
-# dataset_file = 'CASP'
+dataset_file = 'CASP'
 # dataset_file = 'HRSS_anomalous_optimized'
 # dataset_file = 'HRSS_anomalous_standard'
 # dataset_file = 'eegDual_sub1_format'
@@ -24,7 +24,7 @@ import os
 # dataset_file = 'motor_temperature_2' # delete Torque
 # dataset_file = 'motor_temperature_3' # Wilhelm's setting
 # dataset_file = 'motor_temperature_4' # My setting
-dataset_file = 'eegDual_sub1'
+# dataset_file = 'eegDual_sub1'
 
 # init the parameters and load dataset
 param_setting = ParamConfig()
