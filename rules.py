@@ -89,7 +89,7 @@ class RuleKmeans(RuleBase):
         self.center_list = center
         self.n_rules = center.shape[0]
         x_dist = torch.tensor(cdist(x, center))
-        center_idx = torch.argmax(x_dist, 1)
+        center_idx = torch.argmin(x_dist, 1)
         self.x_center_idx = center_idx
         self.widths_list = self.get_widths_list(x)
 

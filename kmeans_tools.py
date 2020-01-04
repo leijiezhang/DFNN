@@ -15,9 +15,9 @@ class KmeansUtils(object):
         rho = 1
         max_steps = 300
         admm_reltol = 0.001
-        admm_abstol = 0.001
+        admm_abstol = 0.0001
 
-        errors = torch.zeros(max_steps, 1)
+        errors = []
         # initiate lagrange multiplier
         lagrange_mul = torch.zeros(n_agents, n_rules, data[1].X.shape[1])
         # initiate global term centrio mu
@@ -33,14 +33,12 @@ class KmeansUtils(object):
                 # ye's method
                 # dist_x = center_global.centerl(center_global) / 2 - center_global.mm(data[j].X.t())
                 # labels = torch.min(dist_x, 0)[1]
-
+                rules.update_rules(data[j].X, center_global)
                 labels = rules.x_center_idx
-                labels_matrix = torch.zeros(n_rules, data[j].X.shape[0])
-                for k in torch.arange(data[j].X.shape[0]):
-                    labels_matrix[labels[k].long(), k] = 1
-                labels_matrix = torch.nn.functional.normalize(labels_matrix, 2, 1)
-
-                center_agent_set[j, :, :] = labels_matrix.double().mm(data[j].X)
+                for k in torch.arange(n_rules):
+                    label_ids = torch.where(labels == k)
+                    smpl_k = data[j].X[label_ids[0], :]
+                    center_agent_set[j, k, :] = smpl_k.mean(0)
 
             # store the old global centrio and update
             center_global_old = center_global.clone()
@@ -58,10 +56,10 @@ class KmeansUtils(object):
             # check stoping criterion
             stop_crtn = - rho * (center_global - center_global_old)
 
-            errors[i] = torch.norm(stop_crtn)
+            errors.append(torch.norm(stop_crtn))
 
             if errors[i] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
                 break
         center_optimal = center_global
 
-        return center_optimal, errors
+        return center_optimal, torch.tensor(errors)

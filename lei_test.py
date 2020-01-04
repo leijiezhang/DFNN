@@ -4,15 +4,11 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 
 
-X = torch.randn(150, 6)
-Y = torch.randn(50, 6)
-a = torch.tensor(cdist(X, Y))
-b = torch.argmax(a, 1)
 
-rules = RuleBase(X, 50)
-rules.x_rule_idx
-kmeans = KMeans(5).fit(X)
-kmeans.set_params
-a = torch.arange(24)
-b = a.view(2, 3, 4)
-c = b.permute(1, 0, 2)
+dataset_file = 'CASP_k5'
+data_save_dir = f"./results/{dataset_file}.pt"
+data_5 = torch.load(data_save_dir)
+dataset_file = 'CASP_k10'
+data_save_dir = f"./results/{dataset_file}.pt"
+data_10 = torch.load(data_save_dir)
+print('lei')
