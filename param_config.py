@@ -23,7 +23,7 @@ class ParamConfig(object):
         self.para_mu = 0
 
     def load_data(self, dataset_str):
-        dir_dataset = f"./datasets/{dataset_str}.py"
+        dir_dataset = f"./datasets/{dataset_str}.pt"
         load_data = torch.load(dir_dataset)
         dataset_name = load_data['name']
         x = load_data['X']
@@ -97,6 +97,11 @@ class ParamConfig(object):
         elif dataset_name == 'motor_temperature_4':
             dataset = Dataset(dataset_name, x, y, task)
             dataset.normalize(-1, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'eegDual_sub1':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
             self.para_mu = 0.001
 
         return dataset

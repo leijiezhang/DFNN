@@ -1,6 +1,7 @@
 from param_config import ParamConfig
 from partition import KFoldPartition
-from dfnn_fc import dfnn_fc_method, dfnn_fc_ite_rules
+from dfnn_fc import dfnn_fc_method
+from loss_function import MapLoss
 import torch
 import os
 
@@ -14,7 +15,7 @@ import os
 # dataset_file = 'airfoil.mat'
 #  # Dataset to load
 # dataset_file = 'CCPP.mat'
-dataset_file = 'CASP'
+# dataset_file = 'CASP'
 # dataset_file = 'HRSS_anomalous_optimized'
 # dataset_file = 'HRSS_anomalous_standard'
 # dataset_file = 'eegDual_sub1_format'
@@ -23,6 +24,7 @@ dataset_file = 'CASP'
 # dataset_file = 'motor_temperature_2' # delete Torque
 # dataset_file = 'motor_temperature_3' # Wilhelm's setting
 # dataset_file = 'motor_temperature_4' # My setting
+dataset_file = 'eegDual_sub1'
 
 # init the parameters and load dataset
 param_setting = ParamConfig()
@@ -33,7 +35,9 @@ dataset = param_setting.load_data(dataset_file)
 patition_strategy = KFoldPartition(param_setting.kfolds)
 dataset.generate_n_partitions(param_setting.runs, patition_strategy)
 
-loss_list, loss_dlist, loss_admm_list = dfnn_fc_method(10, param_setting, patition_strategy, dataset)
+loss_list, loss_dlist, loss_admm_list = dfnn_fc_method(10, param_setting,
+                                                       patition_strategy,
+                                                       dataset, MapLoss())
 
 # loss_list, loss_dlist, loss_admm_list = dfnn_fc_ite_rules(10, param_setting, patition_strategy, dataset)
 

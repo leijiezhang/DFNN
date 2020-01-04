@@ -9,13 +9,16 @@ from rules import RuleFuzzyCmeans
 import torch
 
 
-def dfnn_fc_method(n_rules, param_setting: ParamConfig, patition_strategy: KFoldPartition, dataset: Dataset):
+def dfnn_fc_method(n_rules, param_setting: ParamConfig,
+                   patition_strategy: KFoldPartition,
+                   dataset: Dataset, loss_func: LossFunc):
     """
     todo: this is the method for distribute fuzzy neural network using fuzzy cmeans
     :param param_setting:
     :param patition_strategy:
     :param dataset:
     :param n_rules:
+    :param loss_func:
     :return:
     """
     loss_list = []
@@ -34,7 +37,7 @@ def dfnn_fc_method(n_rules, param_setting: ParamConfig, patition_strategy: KFold
             h_train = compute_h_fc(train_data.X, rules_train)
             # run FNN solver for given rule number
             fnn_tools = FnnKmeansTools(mu)
-            w_optimal = fnn_tools.fnn_solve_r(h_train, train_data.Y)
+            w_optimal = fnn_tools.fnn_solve_r(h_train, train_data.Y.double())
             rules_train.consequent_list = w_optimal
 
             # compute loss
@@ -43,7 +46,7 @@ def dfnn_fc_method(n_rules, param_setting: ParamConfig, patition_strategy: KFold
 
         # trainning global method
         loss, rules = fnn_main(train_data, test_data, param_setting.n_rules,
-                               param_setting.para_mu, RMSELoss())
+                               param_setting.para_mu, loss_func)
         loss_list.append(loss)
 
         # train distributed fnn
@@ -71,7 +74,7 @@ def dfnn_fc_method(n_rules, param_setting: ParamConfig, patition_strategy: KFold
                                                             w_all_agent, h_all_agent)
         # calculate loss
         d_rules.consequent_list = z
-        cfnn_loss = compute_loss_fc(test_data, d_rules, RMSELoss())
+        cfnn_loss = compute_loss_fc(test_data, d_rules, loss_func)
         loss_dlist.append(cfnn_loss)
 
     loss_list = torch.tensor(loss_list)
