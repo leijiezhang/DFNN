@@ -32,7 +32,7 @@ class ParamConfig(object):
         dataset = None
         if dataset_name == 'airfoil':
 
-            dataset = Dataset(dataset_name, x[1:1500, :], task, y[1:1500, :])  # Load and preprocess dataset Data
+            dataset = Dataset(dataset_name, x[1:1500, :], y[1:1500, :], task)  # Load and preprocess dataset Data
             # dataset = Dataset(dataset_name, x(1:1500, 1: 4), task, y(1: 1500,:)) # Load and preprocess dataset Data
             # dataset = Dataset(dataset_name, x(1:1500, 5), task, y(1: 1500,:)) # Load and preprocess dataset Data
             dataset.normalize(-1, 1)
@@ -41,6 +41,26 @@ class ParamConfig(object):
             #  [coeff, score, latent]=pca(dataset.x)
             #  la# tent_check = 100 * cumsum(latent). / sum(latent)
             #  dataset.x = score(:, 1: 4)
+
+        elif dataset_name == 'abalone':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'bikesharing':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'blog':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'housing':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
 
         elif dataset_name == 'CCPP':
             dataset = Dataset(dataset_name, x[1:9500, :], y[1:9500, :], task)
@@ -69,7 +89,7 @@ class ParamConfig(object):
             dataset.normalize(-1, 1)
             self.para_mu = 0.01
 
-        elif dataset_name == 'eegDual_sub1':
+        elif dataset_name == 'HRSS_anomalous_standard':
             dataset = Dataset(dataset_name, x[1:2244, :], y[1:2244, :], task)
             dataset.normalize(-1, 1)
             self.para_mu = 0.01
@@ -103,6 +123,32 @@ class ParamConfig(object):
             dataset = Dataset(dataset_name, x, y, task)
             dataset.normalize(0, 1)
             self.para_mu = 0.001
+
+        elif dataset_name == 'quake':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'skills':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'strength':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'telemonitoring':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
+        elif dataset_name == 'yacht':
+            dataset = Dataset(dataset_name, x, y, task)
+            dataset.normalize(0, 1)
+            self.para_mu = 0.001
+
 
         return dataset
 
