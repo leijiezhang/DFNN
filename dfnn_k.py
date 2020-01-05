@@ -84,25 +84,27 @@ def dfnn_k_method(n_rules, param_setting: ParamConfig,
     return loss_list, loss_dlist, loss_admm_list
 
 
-def dfnn_k_ite_rules(max_rules, param_setting: ParamConfig, patition_strategy: KFoldPartition, dataset: Dataset):
+def dfnn_k_ite_rules(max_rules, param_setting: ParamConfig, patition_strategy: KFoldPartition,
+                     dataset: Dataset, loss_function: LossFunc):
     """
     todo: this method is to calculate different rule numbers on distribute fuzzy neural network iterately
     :param max_rules:
     :param param_setting:
     :param patition_strategy:
     :param dataset:
+    :param loss_function:
     :return:
     """
-    loss_list = torch.empty(0, dataset.n_fea + 1).double()
-    loss_dlist = torch.empty(0, dataset.n_fea + 1).double()
+    loss_list = torch.empty(0, param_setting.kfolds).double()
+    loss_dlist = torch.empty(0, param_setting.kfolds).double()
     loss_admm_list = []
 
     for i in torch.arange(max_rules):
         n_rule = int(i + 1)
         loss_list_temp, loss_dlist_temp, loss_admm_list_temp = \
-            dfnn_k_method(n_rule, param_setting, patition_strategy, dataset)
-        loss_list = torch.cat((loss_list, loss_list_temp.unsqueeze(0)), 0)
-        loss_dlist = torch.cat((loss_dlist, loss_dlist_temp.unsqueeze(0)), 0)
+            dfnn_k_method(n_rule, param_setting, patition_strategy, dataset, loss_function)
+        loss_list = torch.cat((loss_list, loss_list_temp.unsqueeze(0).double()), 0)
+        loss_dlist = torch.cat((loss_dlist, loss_dlist_temp.unsqueeze(0).double()), 0)
         loss_admm_list.append(loss_admm_list_temp)
 
     return loss_list, loss_dlist, loss_admm_list

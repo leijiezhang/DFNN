@@ -14,9 +14,7 @@ import os
 
 # Dataset configuration
 # dataset_file = 'CASP'
-dataset_list = ['abalone', 'airfoil', 'bikesharing',
-                'blog', 'CASP', 'CCPP', 'eegDual_sub1',
-                'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
+dataset_list = ['housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
                 'kc_house', 'motor_temperature', 'quake', 'skills',
                 'strength', 'telemonitoring', 'yacht']
 
@@ -30,6 +28,7 @@ for i in torch.arange(len(dataset_list)):
     # generate partitions of dataset
     patition_strategy = KFoldPartition(param_setting.kfolds)
     dataset.generate_n_partitions(param_setting.runs, patition_strategy)
+    print(dataset.name)
     loss_fun = None
     if dataset.task == 'C':
         loss_fun = MapLoss()
