@@ -23,7 +23,7 @@ class RMSELoss(LossFunc):
         # self.mse = nn.MSELoss()
         self.eps = eps
 
-    def forward(self, yhat, y):
+    def forward(self, y, yhat):
         loss = torch.sqrt(torch.norm(yhat - y) / (y.shape[0] * yhat.var()))
         return loss
 
@@ -34,7 +34,7 @@ class MapLoss(LossFunc):
         # self.mse = nn.MSELoss()
         self.eps = eps
 
-    def forward(self, yhat, y):
+    def forward(self, y, yhat):
         yhat_idx = torch.argmax(yhat, 1)
         y_idx = torch.argmax(y, 1)
         acc_num = torch.where(yhat_idx == y_idx)[0].shape[0]
