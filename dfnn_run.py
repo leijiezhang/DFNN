@@ -1,0 +1,171 @@
+from param_config import ParamConfig
+from partition import KFoldPartition
+from dataset import Dataset
+from kmeans_tools import KmeansUtils
+from loss_utils import LossFunc, LossComputeBase
+from rules import RuleBase
+from h_utils import HBase
+from fnn_utils import fnn_admm
+from fnn_solver import FnnSolveBase
+import torch
+
+
+def fnn_main_c(train_data: Dataset, test_data: Dataset,
+               n_rules, mu, loss_function: LossFunc,
+               h_computer: HBase, fnn_solver: FnnSolveBase,
+               loss_compute: LossComputeBase, rules: RuleBase):
+    """
+    todo: fnn method in centralized way
+    :param train_data:
+    :param test_data:
+    :param n_rules:
+    :param mu:
+    :param loss_function:
+    :param h_computer:
+    :param fnn_solver:
+    :param loss_compute:
+    :param rules:
+    :return:
+    """
+    rules_train = rules
+    rules_train.fit(train_data.X, n_rules)
+    h_train = h_computer.comute_h(train_data.X, rules_train)
+    # run FNN solver for given rule number
+    fnn_solver.h = h_train
+    fnn_solver.y = train_data.Y.double()
+    fnn_solver.para_mu = mu
+    w_optimal = fnn_solver.solve()
+    rules_train.consequent_list = w_optimal
+
+    # compute loss
+    loss_compute.test_data = test_data
+    loss_compute.rules_test = rules_train
+    loss_compute.loss_function = loss_function
+    loss_compute.h_util = h_computer
+    loss = loss_compute.comute_loss()
+    return loss, rules_train
+
+
+def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: this is the method for distribute fuzzy neural network
+    :param param_config:
+    :param dataset:
+    :param n_rules:
+    :return:
+    """
+    loss_g_tsr = []
+    loss_d_tsr = []
+    loss_curve_list = []
+    param_config.n_rules = n_rules
+    for k in torch.arange(param_config.kfolds):
+        param_config.patition_strategy.set_current_folds(k)
+        train_data, test_data = dataset.get_fold_data()
+        train_data.generate_distribute(KFoldPartition(param_config.n_agents))
+        d_train_data = train_data.distribute_dataset()
+
+        # trainning global method
+        loss, rules = fnn_main_c(train_data, test_data, param_config.n_rules,
+                                 param_config.para_mu_current, param_config.loss_fun,
+                                 param_config.h_computer, param_config.fnn_solver,
+                                 param_config.loss_compute, param_config.rules)
+        loss_g_tsr.append(loss)
+
+        # train distributed fnn
+        kmeans_utils = KmeansUtils()
+        center_optimal, errors = kmeans_utils.kmeans_admm(d_train_data, param_config.n_rules,
+                                                          param_config.n_agents, rules)
+        loss_curve_list.append(errors)
+        d_rules = rules
+
+        n_fea = train_data.X.shape[1]
+        h_all_agent = []
+        # the shape of w set is n_agents *  n_output * n_rules * len_w
+        w_all_agent = torch.empty((0, train_data.Y.shape[1],
+                                   param_config.n_rules, n_fea + 1)).double()
+
+        for i in torch.arange(param_config.n_agents):
+            d_rules.update_rules(d_train_data[i].X, center_optimal)
+            h_per_agent = param_config.h_computer.comute_h(d_train_data[i].X, d_rules)
+            h_all_agent.append(h_per_agent)
+
+            param_config.fnn_solver.h = h_per_agent
+            param_config.fnn_solver.y = d_train_data[i].Y.double()
+            param_config.fnn_solver.para_mu = param_config.para_mu_current
+            w_optimal_per_agent = param_config.fnn_solver.solve()
+            w_all_agent = torch.cat((w_all_agent, w_optimal_per_agent.unsqueeze(0)), 0)
+
+        w_optimal_all_agent, z, errors = fnn_admm(d_train_data, param_config,
+                                                  w_all_agent, h_all_agent)
+        # calculate loss
+        d_rules.consequent_list = z
+        param_config.loss_compute.test_data = test_data
+        param_config.loss_compute.rules_test = d_rules
+        param_config.loss_compute.loss_function = param_config.loss_fun
+        param_config.loss_compute.h_util = param_config.h_computer
+        cfnn_loss = param_config.loss_compute.comute_loss()
+        loss_d_tsr.append(cfnn_loss)
+
+    loss_g_tsr = torch.tensor(loss_g_tsr)
+    loss_d_tsr = torch.tensor(loss_d_tsr)
+    return loss_g_tsr, loss_d_tsr, loss_curve_list
+
+
+def dfnn_ite_rules(max_rules, param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: this method is to calculate different rule numbers on distribute fuzzy neural network iterately
+    :param max_rules:
+    :param param_config:
+    :param dataset:
+    :return:
+    """
+    loss_g_tsr = torch.empty(0, param_config.kfolds).double()
+    loss_d_tsr = torch.empty(0, param_config.kfolds).double()
+    # n_max_rule * k_fold * len_curve
+    loss_curve_list = []
+
+    for i in torch.arange(max_rules):
+        n_rules = int(i + 1)
+        loss_list, loss_dlist, loss_admm_list = dfnn_method(n_rules, param_config, dataset)
+        loss_g_tsr = torch.cat((loss_g_tsr, loss_list.unsqueeze(0).double()), 0)
+        loss_d_tsr = torch.cat((loss_d_tsr, loss_dlist.unsqueeze(0).double()), 0)
+        loss_curve_list.append(loss_admm_list)
+
+    return loss_g_tsr, loss_d_tsr, loss_curve_list
+
+
+def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: consider all parameters in para_mu_list into algorithm
+    :param max_rules:
+    :param param_config:
+    :param dataset:
+    :return:
+    """
+    loss_g_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    loss_d_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    # n_para_list * n_max_rule * k_fold * len_curve
+    loss_curve_list = []
+
+    # loss_g_mean_mtx = torch.empty(0, max_rules)
+    loss_d_mean_mtx = torch.empty(0, max_rules).double()
+    for i in torch.arange(param_config.para_mu_list.shape[0]):
+        param_config.para_mu_current = param_config.para_mu_list[i]
+        loss_list, loss_dlist, loss_admm_list = dfnn_ite_rules(max_rules, param_config, dataset)
+        loss_g_mu_tsr = torch.cat((loss_g_mu_tsr, loss_list.unsqueeze(0).double()), 0)
+        loss_d_mu_tsr = torch.cat((loss_d_mu_tsr, loss_dlist.unsqueeze(0).double()), 0)
+        loss_curve_list.append(loss_admm_list)
+        # loss_g_mean = loss_list.mean(1).unsqueeze(1).double()
+        loss_d_mean = loss_dlist.mean(1).unsqueeze(1).double()
+        # loss_g_mean_mtx = torch.cat((loss_g_mean_mtx, loss_g_mean), 0)
+        loss_d_mean_mtx = torch.cat((loss_d_mean_mtx, loss_d_mean.t()), 0)
+    # logg_g_min_idx = torch.argmin(loss_g_mean_mtx, 0)
+    log_d_min_idx = torch.argmin(loss_d_mean_mtx, 0)
+    best_mu_idx = torch.zeros(log_d_min_idx.shape[0])
+    for j in torch.arange(log_d_min_idx.shape[0]):
+        best_now = log_d_min_idx[j]
+        best_mu_idx[best_now] = best_mu_idx[best_now] + 1
+
+    best_mu_idx = torch.argmax(best_mu_idx)
+    best_mu = param_config.para_mu_list[best_mu_idx]
+    return loss_g_mu_tsr, loss_d_mu_tsr, loss_curve_list, best_mu_idx, best_mu

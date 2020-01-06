@@ -1,5 +1,9 @@
-from dataset import Dataset
-import scipy.io as sio
+from h_utils import HBase
+from fnn_solver import FnnSolveReg
+from loss_utils import LossComputeBase
+from rules import RuleBase
+from partition import KFoldPartition
+from loss_utils import LossFunc
 import torch
 
 
@@ -15,142 +19,28 @@ class ParamConfig(object):
 
         self.n_rules = nrules  # number of rules in stage 1
         self.n_rules_s2 = nrules_s2  # number of rules in stage 2
-        self.dataset_list = ['abalone', 'airfoil', 'bikesharing',
-                             'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1_format',
-                             'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
-                             'kc_house', 'motor_temperature', 'quake', 'skills',
-                             'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
-        self.para_mu = 0
+        self.dataset_list_full = ['abalone', 'airfoil', 'bikesharing',
+                                  'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',
+                                  'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
+                                  'kc_house', 'motor_temperature', 'quake', 'skills',
+                                  'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
+        self.dataset_list = ['CASP']
 
-    def load_data(self, dataset_str):
-        dir_dataset = f"./datasets/{dataset_str}.pt"
-        load_data = torch.load(dir_dataset)
-        dataset_name = load_data['name']
-        x = load_data['X']
-        y = load_data['Y']
-        task = load_data['task']
-        dataset = None
-        if dataset_name == 'airfoil':
+        # set mu
+        self.para_mu_current = 0
+        para_mu_list = torch.linspace(-4, 4, 9)
+        # para_mu_list = torch.linspace(-3, -1, 3)
+        self.para_mu_list = torch.pow(10, para_mu_list).double()
 
-            dataset = Dataset(dataset_name, x[1:1500, :], y[1:1500, :], task)  # Load and preprocess dataset Data
-            # dataset = Dataset(dataset_name, x(1:1500, 1: 4), task, y(1: 1500,:)) # Load and preprocess dataset Data
-            # dataset = Dataset(dataset_name, x(1:1500, 5), task, y(1: 1500,:)) # Load and preprocess dataset Data
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.1
-            #  # ==PCA===
-            #  [coeff, score, latent]=pca(dataset.x)
-            #  la# tent_check = 100 * cumsum(latent). / sum(latent)
-            #  dataset.x = score(:, 1: 4)
-
-        elif dataset_name == 'abalone':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'bikesharing':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'blog':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'housing':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'CCPP':
-            dataset = Dataset(dataset_name, x[1:9500, :], y[1:9500, :], task)
-            #  dataset = Dataset(dataset_name, x[1:9500, 1: 3], task, y[1: 9500,:])
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.01
-            #  #  ==PCA===
-            #  [coeff, score, latent]=pca(dataset.x)
-            #  la# tent_check = 100 * cumsum(latent). / sum(latent)
-            #  dataset.x = score(:, 1: 3)
-
-        elif dataset_name == 'CASP':
-            dataset = Dataset(dataset_name, x, y, task)
-            #  dataset = Dataset(dataset_name, x[1:2000, : ], task, y[1: 2000,:])
-            # dataset = Dataset(dataset_name, x[1:2000, 1: 4], task, y[1: 2000,:])
-            #  dataset = Dataset(dataset_name, x[1:2000, 5: 9], task, y[1: 2000,:])
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-            # # ==PCA===
-            #  [coeff, score, latent]=pca(dataset.x)
-            #  la# tent_check = 100 * cumsum(latent). / sum(latent)
-            #  dataset.x = score(:, 1: 3)
-
-        elif dataset_name == 'HRSS_anomalous_optimized':
-            dataset = Dataset(dataset_name, x[1:6500, :], y[1:6500, :], task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.01
-
-        elif dataset_name == 'HRSS_anomalous_standard':
-            dataset = Dataset(dataset_name, x[1:2244, :], y[1:2244, :], task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.01
-
-        elif dataset_name == 'kc_house':
-            dataset = Dataset(dataset_name, x[1:21613, :], y[1:21613, :], task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'motor_temperature':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'motor_temperature_2':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'motor_temperature_3':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'motor_temperature_4':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(-1, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'eegDual_sub1':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'quake':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'skills':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'strength':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'telemonitoring':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
-
-        elif dataset_name == 'yacht':
-            dataset = Dataset(dataset_name, x, y, task)
-            dataset.normalize(0, 1)
-            self.para_mu = 0.001
+        # initiate tools
+        self.h_computer = HBase()
+        self.fnn_solver = FnnSolveReg()
+        self.loss_compute = LossComputeBase()
+        self.loss_fun = LossFunc()
+        self.rules = RuleBase()
+        self.patition_strategy = KFoldPartition(self.kfolds)
 
 
-        return dataset
 
 
 

@@ -1,77 +1,56 @@
 from param_config import ParamConfig
 from partition import KFoldPartition
-# from dfnn_fc import dfnn_fc_method
-from dfnn_fc import dfnn_fc_ite_rules
-from loss_function import MapLoss, RMSELoss
+from loss_utils import MapLoss, RMSELoss
+from dfnn_run import dfnn_ite_rules_mu
+from h_utils import HFuzzy
+from fnn_solver import FnnSolveReg
+from loss_utils import LossComputeFuzzy
+from rules import RuleFuzzyCmeans
+from utils import load_data
 import torch
 import os
 
 
-# -------------------------------------------------------------------------
-# --- PARAMS_SELECTION - ---------------------------------------------------
-# --- Define the parameters for the simulation - ---------------------------
-# -------------------------------------------------------------------------
-
 # Dataset configuration
-# dataset_file = 'CASP'
-dataset_list = ['housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
-                'kc_house', 'motor_temperature', 'quake', 'skills',
-                'strength', 'telemonitoring', 'yacht']
+# init the parameters
+param_config = ParamConfig()
+# dataset_list = ['housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
+#                 'kc_house', 'motor_temperature', 'quake', 'skills',
+#                 'strength', 'telemonitoring', 'yacht']
+param_config.dataset_list = ['eegDual_sub1']
+# para_mu_list = torch.linspace(-4, 4, 9)
+para_mu_list = torch.linspace(-3, -1, 3)
+param_config.para_mu_list = torch.pow(10, para_mu_list).double()
+param_config.h_computer = HFuzzy()
+param_config.fnn_solver = FnnSolveReg()
+param_config.loss_compute = LossComputeFuzzy()
+param_config.rules = RuleFuzzyCmeans()
+# generate partitions of dataset
+param_config.patition_strategy = KFoldPartition(param_config.kfolds)
 
-for i in torch.arange(len(dataset_list)):
-    dataset_file = dataset_list[int(i)]
-    # init the parameters and load dataset
-    param_setting = ParamConfig()
 
-    dataset = param_setting.load_data(dataset_file)
+for i in torch.arange(len(param_config.dataset_list)):
+    dataset_file = param_config.dataset_list[int(i)]
+    # load dataset
+    dataset = load_data(dataset_file)
 
-    # generate partitions of dataset
-    patition_strategy = KFoldPartition(param_setting.kfolds)
-    dataset.generate_n_partitions(param_setting.runs, patition_strategy)
+    dataset.generate_n_partitions(param_config.runs, param_config.patition_strategy)
     print(dataset.name)
     loss_fun = None
     if dataset.task == 'C':
-        loss_fun = MapLoss()
+        param_config.loss_fun = MapLoss()
     else:
-        loss_fun = RMSELoss()
-    loss_list, loss_dlist, loss_admm_list = dfnn_fc_ite_rules(15, param_setting,
-                                                              patition_strategy, dataset, loss_fun)
+        param_config.loss_fun = RMSELoss()
+    loss_g, loss_d, loss_curve, best_idx, best_mu = dfnn_ite_rules_mu(3, param_config, dataset)
+
     data_save = dict()
-    data_save['loss_list'] = loss_list
-    data_save['loss_admm_list'] = loss_admm_list
-    data_save['loss_dlist'] = loss_dlist
+    data_save['loss_g_tsr'] = loss_g
+    data_save['loss_curve_list'] = loss_curve
+    data_save['loss_d_tsr'] = loss_d
+    data_save['best_idx'] = best_idx
+    data_save['best_mu'] = best_mu
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
     data_save_file = f"{data_save_dir}{dataset_file}_fc.pt"
     torch.save(data_save, data_save_file)
-
-
-# ==================below are the original codes ====================
-# # init the parameters and load dataset
-# param_setting = ParamConfig()
-#
-# dataset = param_setting.load_data(dataset_file)
-#
-# # generate partitions of dataset
-# patition_strategy = KFoldPartition(param_setting.kfolds)
-# dataset.generate_n_partitions(param_setting.runs, patition_strategy)
-
-# loss_list, loss_dlist, loss_admm_list = dfnn_fc_method(5, param_setting,
-#                                                        patition_strategy,
-#                                                        dataset, RMSELoss())
-
-# loss_list, loss_dlist, loss_admm_list = dfnn_fc_ite_rules(10,
-#                                                           param_setting,
-#                                                           patition_strategy,
-#                                                           dataset, MapLoss())
-
-# data_save = dict()
-# data_save['loss_list'] = loss_list
-# data_save['loss_admm_list'] = loss_admm_list
-# data_save['loss_dlist'] = loss_dlist
-# data_save_dir = "./results/"
-# if not os.path.exists(data_save_dir):
-#     os.makedirs(data_save_dir)
-# data_save_file = f"{data_save_dir}{dataset_file}.pt"
-# torch.save(data_save, data_save_file)
