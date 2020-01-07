@@ -24,7 +24,7 @@ class RMSELoss(LossFunc):
         self.eps = eps
 
     def forward(self, y, yhat):
-        loss = torch.sqrt(torch.norm(yhat - y) / (y.shape[0] * yhat.std()))
+        loss = torch.sqrt(torch.pow((yhat - y), 2).sum() / (y.shape[0] * y.var()))
         return loss
 
 
@@ -42,10 +42,26 @@ class MapLoss(LossFunc):
         return loss
 
 
+class LikelyLoss(LossFunc):
+    """
+    todo: used for calculate the loss of classification task with one output node
+    """
+    def __init__(self, eps=1e-6):
+        super().__init__()
+        # self.mse = nn.MSELoss()
+        self.eps = eps
+
+    def forward(self, y, yhat):
+        yhat = torch.round(yhat)
+        acc_num = torch.where(yhat == y)[0].shape[0]
+        loss = 1 - (acc_num / y.shape[0])
+        return loss
+
+
 class LossComputeBase(object):
     def __init__(self):
-        self.test_data: Dataset = None
-        self.rules_test: RuleBase = None
+        self.data: Dataset = None
+        self.rules: RuleBase = None
         self.loss_function: LossFunc = None
         self.h_util: HBase = None
 
@@ -61,18 +77,18 @@ class LossComputeNormal(LossComputeBase):
 
     def comute_loss(self):
         # update rules on test data
-        self.rules_test.update_rules(self.test_data.X, self.rules_test.center_list)
-        h_test = self.h_util.comute_h(self.test_data.X, self.rules_test)
-        n_rule = h_test.shape[0]
-        n_smpl = h_test.shape[1]
-        n_fea = h_test.shape[2]
-        h_cal = h_test.permute((1, 0, 2))  # N * n_rules * (d + 1)
+        self.rules.update_rules(self.data.X, self.rules.center_list)
+        h = self.h_util.comute_h(self.data.X, self.rules)
+        n_rule = h.shape[0]
+        n_smpl = h.shape[1]
+        n_fea = h.shape[2]
+        h_cal = h.permute((1, 0, 2))  # N * n_rules * (d + 1)
         h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
 
         # calculate Y hat
-        y_hat = h_cal.mm(self.rules_test.consequent_list.reshape(self.test_data.Y.shape[1],
-                                                                 n_rule * n_fea).t())
-        loss = self.loss_function.forward(self.test_data.Y, y_hat)
+        y_hat = h_cal.mm(self.rules.consequent_list.reshape(self.data.Y.shape[1],
+                                                            n_rule * n_fea).t())
+        loss = self.loss_function.forward(self.data.Y, y_hat)
         return loss
 
 
@@ -84,8 +100,8 @@ class LossComputeFuzzy(LossComputeBase):
         """
         """
         # update rules on test data
-        self.rules_test.update_rules(self.test_data.X, self.rules_test.center_list)
-        h_test = self.h_util.comute_h(self.test_data.X, self.rules_test)
+        self.rules.update_rules(self.data.X, self.rules.center_list)
+        h_test = self.h_util.comute_h(self.data.X, self.rules)
         n_rule = h_test.shape[0]
         n_smpl = h_test.shape[1]
         n_fea = h_test.shape[2]
@@ -93,9 +109,9 @@ class LossComputeFuzzy(LossComputeBase):
         h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
 
         # calculate Y hat
-        y_hat = h_cal.mm(self.rules_test.consequent_list.reshape(self.test_data.Y.shape[1],
+        y_hat = h_cal.mm(self.rules.consequent_list.reshape(self.data.Y.shape[1],
                                                                  n_rule * n_fea).t())
-        loss = self.loss_function.forward(self.test_data.Y, y_hat)
+        loss = self.loss_function.forward(self.data.Y, y_hat)
         return loss
 
 

@@ -37,6 +37,9 @@ def dataset_parse(dataset_name):
     data_save['name'] = dataset_name
     data_save['X'] = x
     if task == 'C':
+        y_min = torch.min(y)
+        y_gap = y_min - 0
+        y = y - y_gap
         y_unique = torch.unique(y)
         y_c = torch.zeros(y.shape[0], y_unique.shape[0])
         for i in torch.arange(y_c.shape[1]):
