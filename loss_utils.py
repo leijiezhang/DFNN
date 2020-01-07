@@ -24,7 +24,7 @@ class RMSELoss(LossFunc):
         self.eps = eps
 
     def forward(self, y, yhat):
-        loss = torch.sqrt(torch.norm(yhat - y) / (y.shape[0] * yhat.var()))
+        loss = torch.sqrt(torch.norm(yhat - y) / (y.shape[0] * yhat.std()))
         return loss
 
 

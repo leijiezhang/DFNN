@@ -18,8 +18,8 @@ param_config = ParamConfig()
 #                 'kc_house', 'motor_temperature', 'quake', 'skills',
 #                 'strength', 'telemonitoring', 'yacht']
 param_config.dataset_list = ['eegDual_sub1']
-# para_mu_list = torch.linspace(-4, 4, 9)
-para_mu_list = torch.linspace(-3, -1, 3)
+para_mu_list = torch.linspace(-4, 4, 9)
+# para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
 param_config.h_computer = HFuzzy()
 param_config.fnn_solver = FnnSolveReg()
@@ -41,7 +41,7 @@ for i in torch.arange(len(param_config.dataset_list)):
         param_config.loss_fun = MapLoss()
     else:
         param_config.loss_fun = RMSELoss()
-    loss_g, loss_d, loss_curve, best_idx, best_mu = dfnn_ite_rules_mu(3, param_config, dataset)
+    loss_g, loss_d, loss_curve, best_idx, best_mu = dfnn_ite_rules_mu(15, param_config, dataset)
 
     data_save = dict()
     data_save['loss_g_tsr'] = loss_g

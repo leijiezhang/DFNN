@@ -1,14 +1,17 @@
 import torch
 from utils import dataset_parse
 
-dataset_list = ['abalone', 'airfoil', 'bikesharing',
-                'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1_format',
-                'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
-                'kc_house', 'motor_temperature', 'quake', 'skills',
-                'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
-for i in torch.arange(len(dataset_list)):
-    dataset_name = dataset_list[i]
+dataset_file = 'eegDual_sub1'
+data_save_dir = "./results/"
+data_save_file = f"{data_save_dir}{dataset_file}_fc.pt"
+data_load = torch.load(data_save_file)
 
-    dataset_parse(dataset_name)
+loss_g_mean = data_load['loss_g_tsr'].mean(2)
+loss_g_mean_best = loss_g_mean[data_load['best_idx'], :]
+
+loss_d_mean = data_load['loss_d_tsr'].mean(2)
+loss_d_mean_best = loss_d_mean[data_load['best_idx'], :]
+
+loss_curv_mean_best = data_load['loss_curve_list'][data_load['best_idx']][1]
 
 print('lei')
