@@ -1,6 +1,9 @@
 import torch
 import scipy.io as sio
 from dataset import Dataset
+import logging
+import os
+import time
 
 
 def load_data(dataset_str):
@@ -51,3 +54,42 @@ def dataset_parse(dataset_name):
         data_save['Y'] = y.unsqueeze(1)
     dir_dataset = f"./datasets/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)
+
+
+class Logger(object):
+    def __init__(self, clevel=logging.DEBUG, Flevel=logging.DEBUG):
+        # create dictionary
+        file_name = f"./log/log_{time.strftime('%M_%S ',time.localtime(time.time()))}.log"
+        if not os.path.exists(file_name):
+            folder_name = './log'
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
+            open(file_name, 'a')
+        self.logger = logging.getLogger(file_name)
+        self.logger.setLevel(logging.DEBUG)
+        fmt = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
+        # set CMD dairy
+        sh = logging.StreamHandler()
+        sh.setFormatter(fmt)
+        sh.setLevel(clevel)
+        # set log file
+        fh = logging.FileHandler(file_name, encoding='utf-8')
+        fh.setFormatter(fmt)
+        fh.setLevel(Flevel)
+        self.logger.addHandler(sh)
+        self.logger.addHandler(fh)
+
+    def debug(self, message):
+        self.logger.debug(message)
+
+    def info(self, message):
+        self.logger.info(message)
+
+    def war(self, message):
+        self.logger.warn(message)
+
+    def error(self, message):
+        self.logger.error(message)
+
+    def cri(self, message):
+        self.logger.critical(message)

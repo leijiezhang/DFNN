@@ -68,6 +68,8 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
     loss_curve_list = []
     param_config.n_rules = n_rules
     for k in torch.arange(param_config.kfolds):
+        param_config.log.info(f"start traning at {k + 1}-fold!")
+
         param_config.patition_strategy.set_current_folds(k)
         train_data, test_data = dataset.get_fold_data()
         train_data.generate_distribute(KFoldPartition(param_config.n_agents))
@@ -80,7 +82,8 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
                                                   param_config.loss_compute, param_config.rules)
         loss_c_train_tsr.append(train_loss)
         loss_c_test_tsr.append(test_loss)
-
+        param_config.log.info(f"loss of training data on centralized method: {train_loss}")
+        param_config.log.info(f"loss of test data on centralized method: {test_loss}")
         # train distributed fnn
         kmeans_utils = KmeansUtils()
         center_optimal, errors = kmeans_utils.kmeans_admm(d_train_data, param_config.n_rules,
@@ -115,6 +118,7 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
         param_config.loss_compute.loss_function = param_config.loss_fun
         param_config.loss_compute.h_util = param_config.h_computer
         cfnn_train_loss = param_config.loss_compute.comute_loss()
+        param_config.log.info(f"loss of training data on distributed method: {cfnn_train_loss}")
 
         # calculate test loss
         d_rules.consequent_list = z
@@ -123,6 +127,7 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
         param_config.loss_compute.loss_function = param_config.loss_fun
         param_config.loss_compute.h_util = param_config.h_computer
         cfnn_test_loss = param_config.loss_compute.comute_loss()
+        param_config.log.info(f"loss of test data on distributed method: {cfnn_test_loss}")
 
         loss_d_train_tsr.append(cfnn_train_loss)
         loss_d_test_tsr.append(cfnn_test_loss)
@@ -151,6 +156,8 @@ def dfnn_ite_rules(max_rules, param_config: ParamConfig, dataset: Dataset):
 
     for i in torch.arange(max_rules):
         n_rules = int(i + 1)
+        param_config.log.info(f"running at rule number: {n_rules}")
+
         loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_admm_list = \
             dfnn_method(n_rules, param_config, dataset)
         loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
@@ -181,6 +188,8 @@ def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
     loss_d_mean_mtx = torch.empty(0, max_rules).double()
     for i in torch.arange(param_config.para_mu_list.shape[0]):
         param_config.para_mu_current = param_config.para_mu_list[i]
+        param_config.log.info(f"running param mu: {param_config.para_mu_current}")
+
         loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_admm_list = \
             dfnn_ite_rules(max_rules, param_config, dataset)
         loss_c_train_mu_tsr = torch.cat((loss_c_train_mu_tsr, loss_c_train.unsqueeze(0).double()), 0)

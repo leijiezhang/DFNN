@@ -14,9 +14,6 @@ import os
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-# dataset_list = ['housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
-#                 'kc_house', 'motor_temperature', 'quake', 'skills',
-#                 'strength', 'telemonitoring', 'yacht']
 param_config.dataset_list = ['eegDual_sub1']
 para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.linspace(-3, -1, 3)
@@ -29,12 +26,13 @@ param_config.n_agents = 5
 # generate partitions of dataset
 param_config.patition_strategy = KFoldPartition(param_config.kfolds)
 
+param_config.log.info('==========start training!=========')
 
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.dataset_list[int(i)]
     # load dataset
     dataset = load_data(dataset_file)
-
+    param_config.log.info(f"dataset: {dataset.name} is loaded for {dataset.task}.")
     dataset.generate_n_partitions(param_config.runs, param_config.patition_strategy)
     print(dataset.name)
     loss_fun = None
