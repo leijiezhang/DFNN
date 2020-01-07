@@ -17,7 +17,7 @@ param_config = ParamConfig()
 # dataset_list = ['housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
 #                 'kc_house', 'motor_temperature', 'quake', 'skills',
 #                 'strength', 'telemonitoring', 'yacht']
-param_config.dataset_list = ['CASP']
+param_config.dataset_list = ['eegDual_sub1']
 para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
