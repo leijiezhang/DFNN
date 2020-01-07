@@ -37,8 +37,12 @@ class KmeansUtils(object):
                 labels = rules.x_center_idx
                 for k in torch.arange(n_rules):
                     label_ids = torch.where(labels == k)
-                    smpl_k = data[j].X[label_ids[0], :]
-                    center_agent_set[j, k, :] = smpl_k.mean(0)
+                    # if no sample is related to this center
+                    if not label_ids[0].shape[0] == 0:
+                        smpl_k = data[j].X[label_ids[0], :]
+                        center_agent_set[j, k, :] = smpl_k.mean(0)
+                    else:
+                        center_agent_set[j, k, :] = center_global[k, :]
 
             # store the old global centrio and update
             center_global_old = center_global.clone()
