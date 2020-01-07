@@ -37,13 +37,20 @@ def fnn_main_c(train_data: Dataset, test_data: Dataset,
     w_optimal = fnn_solver.solve()
     rules_train.consequent_list = w_optimal
 
-    # compute loss
-    loss_compute.test_data = test_data
-    loss_compute.rules_test = rules_train
+    # compute train loss
+    loss_compute.data = train_data
+    loss_compute.rules = rules_train
     loss_compute.loss_function = loss_function
     loss_compute.h_util = h_computer
-    loss = loss_compute.comute_loss()
-    return loss, rules_train
+    train_loss = loss_compute.comute_loss()
+
+    # compute test loss
+    loss_compute.data = test_data
+    loss_compute.rules = rules_train
+    loss_compute.loss_function = loss_function
+    loss_compute.h_util = h_computer
+    test_loss = loss_compute.comute_loss()
+    return train_loss, test_loss, rules_train
 
 
 def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
@@ -54,8 +61,10 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
     :param n_rules:
     :return:
     """
-    loss_g_tsr = []
-    loss_d_tsr = []
+    loss_c_train_tsr = []
+    loss_c_test_tsr = []
+    loss_d_train_tsr = []
+    loss_d_test_tsr = []
     loss_curve_list = []
     param_config.n_rules = n_rules
     for k in torch.arange(param_config.kfolds):
@@ -65,11 +74,12 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
         d_train_data = train_data.distribute_dataset()
 
         # trainning global method
-        loss, rules = fnn_main_c(train_data, test_data, param_config.n_rules,
-                                 param_config.para_mu_current, param_config.loss_fun,
-                                 param_config.h_computer, param_config.fnn_solver,
-                                 param_config.loss_compute, param_config.rules)
-        loss_g_tsr.append(loss)
+        train_loss, test_loss, rules = fnn_main_c(train_data, test_data, param_config.n_rules,
+                                                  param_config.para_mu_current, param_config.loss_fun,
+                                                  param_config.h_computer, param_config.fnn_solver,
+                                                  param_config.loss_compute, param_config.rules)
+        loss_c_train_tsr.append(train_loss)
+        loss_c_test_tsr.append(test_loss)
 
         # train distributed fnn
         kmeans_utils = KmeansUtils()
@@ -97,18 +107,31 @@ def dfnn_method(n_rules, param_config: ParamConfig, dataset: Dataset):
 
         w_optimal_all_agent, z, errors = fnn_admm(d_train_data, param_config,
                                                   w_all_agent, h_all_agent)
-        # calculate loss
+
+        # calculate train loss
         d_rules.consequent_list = z
-        param_config.loss_compute.test_data = test_data
-        param_config.loss_compute.rules_test = d_rules
+        param_config.loss_compute.data = train_data
+        param_config.loss_compute.rules = d_rules
         param_config.loss_compute.loss_function = param_config.loss_fun
         param_config.loss_compute.h_util = param_config.h_computer
-        cfnn_loss = param_config.loss_compute.comute_loss()
-        loss_d_tsr.append(cfnn_loss)
+        cfnn_train_loss = param_config.loss_compute.comute_loss()
 
-    loss_g_tsr = torch.tensor(loss_g_tsr)
-    loss_d_tsr = torch.tensor(loss_d_tsr)
-    return loss_g_tsr, loss_d_tsr, loss_curve_list
+        # calculate test loss
+        d_rules.consequent_list = z
+        param_config.loss_compute.data = test_data
+        param_config.loss_compute.rules = d_rules
+        param_config.loss_compute.loss_function = param_config.loss_fun
+        param_config.loss_compute.h_util = param_config.h_computer
+        cfnn_test_loss = param_config.loss_compute.comute_loss()
+
+        loss_d_train_tsr.append(cfnn_train_loss)
+        loss_d_test_tsr.append(cfnn_test_loss)
+
+    loss_c_train_tsr = torch.tensor(loss_c_train_tsr)
+    loss_c_test_tsr = torch.tensor(loss_c_test_tsr)
+    loss_d_train_tsr = torch.tensor(loss_d_train_tsr)
+    loss_d_test_tsr = torch.tensor(loss_d_test_tsr)
+    return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr, loss_curve_list
 
 
 def dfnn_ite_rules(max_rules, param_config: ParamConfig, dataset: Dataset):
@@ -119,19 +142,24 @@ def dfnn_ite_rules(max_rules, param_config: ParamConfig, dataset: Dataset):
     :param dataset:
     :return:
     """
-    loss_g_tsr = torch.empty(0, param_config.kfolds).double()
-    loss_d_tsr = torch.empty(0, param_config.kfolds).double()
+    loss_c_train_tsr = torch.empty(0, param_config.kfolds).double()
+    loss_c_test_tsr = torch.empty(0, param_config.kfolds).double()
+    loss_d_train_tsr = torch.empty(0, param_config.kfolds).double()
+    loss_d_test_tsr = torch.empty(0, param_config.kfolds).double()
     # n_max_rule * k_fold * len_curve
     loss_curve_list = []
 
     for i in torch.arange(max_rules):
         n_rules = int(i + 1)
-        loss_list, loss_dlist, loss_admm_list = dfnn_method(n_rules, param_config, dataset)
-        loss_g_tsr = torch.cat((loss_g_tsr, loss_list.unsqueeze(0).double()), 0)
-        loss_d_tsr = torch.cat((loss_d_tsr, loss_dlist.unsqueeze(0).double()), 0)
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_admm_list = \
+            dfnn_method(n_rules, param_config, dataset)
+        loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
+        loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
+        loss_d_train_tsr = torch.cat((loss_d_train_tsr, loss_d_train.unsqueeze(0).double()), 0)
+        loss_d_test_tsr = torch.cat((loss_d_test_tsr, loss_d_test.unsqueeze(0).double()), 0)
         loss_curve_list.append(loss_admm_list)
 
-    return loss_g_tsr, loss_d_tsr, loss_curve_list
+    return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr, loss_curve_list
 
 
 def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
@@ -142,8 +170,10 @@ def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
     :param dataset:
     :return:
     """
-    loss_g_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
-    loss_d_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    loss_c_train_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    loss_c_test_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    loss_d_train_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
+    loss_d_test_mu_tsr = torch.empty(0, max_rules, param_config.kfolds).double()
     # n_para_list * n_max_rule * k_fold * len_curve
     loss_curve_list = []
 
@@ -151,12 +181,15 @@ def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
     loss_d_mean_mtx = torch.empty(0, max_rules).double()
     for i in torch.arange(param_config.para_mu_list.shape[0]):
         param_config.para_mu_current = param_config.para_mu_list[i]
-        loss_list, loss_dlist, loss_admm_list = dfnn_ite_rules(max_rules, param_config, dataset)
-        loss_g_mu_tsr = torch.cat((loss_g_mu_tsr, loss_list.unsqueeze(0).double()), 0)
-        loss_d_mu_tsr = torch.cat((loss_d_mu_tsr, loss_dlist.unsqueeze(0).double()), 0)
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_admm_list = \
+            dfnn_ite_rules(max_rules, param_config, dataset)
+        loss_c_train_mu_tsr = torch.cat((loss_c_train_mu_tsr, loss_c_train.unsqueeze(0).double()), 0)
+        loss_c_test_mu_tsr = torch.cat((loss_c_test_mu_tsr, loss_c_test.unsqueeze(0).double()), 0)
+        loss_d_train_mu_tsr = torch.cat((loss_d_train_mu_tsr, loss_d_train.unsqueeze(0).double()), 0)
+        loss_d_test_mu_tsr = torch.cat((loss_d_test_mu_tsr, loss_d_test.unsqueeze(0).double()), 0)
         loss_curve_list.append(loss_admm_list)
         # loss_g_mean = loss_list.mean(1).unsqueeze(1).double()
-        loss_d_mean = loss_dlist.mean(1).unsqueeze(1).double()
+        loss_d_mean = loss_d_test.mean(1).unsqueeze(1).double()
         # loss_g_mean_mtx = torch.cat((loss_g_mean_mtx, loss_g_mean), 0)
         loss_d_mean_mtx = torch.cat((loss_d_mean_mtx, loss_d_mean.t()), 0)
     # logg_g_min_idx = torch.argmin(loss_g_mean_mtx, 0)
@@ -168,4 +201,4 @@ def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, dataset: Dataset):
 
     best_mu_idx = torch.argmax(best_mu_idx)
     best_mu = param_config.para_mu_list[best_mu_idx]
-    return loss_g_mu_tsr, loss_d_mu_tsr, loss_curve_list, best_mu_idx, best_mu
+    return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr, loss_curve_list, best_mu_idx, best_mu

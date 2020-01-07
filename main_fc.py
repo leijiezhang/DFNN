@@ -25,6 +25,7 @@ param_config.h_computer = HFuzzy()
 param_config.fnn_solver = FnnSolveReg()
 param_config.loss_compute = LossComputeFuzzy()
 param_config.rules = RuleFuzzyCmeans()
+param_config.n_agents = 5
 # generate partitions of dataset
 param_config.patition_strategy = KFoldPartition(param_config.kfolds)
 
@@ -41,12 +42,16 @@ for i in torch.arange(len(param_config.dataset_list)):
         param_config.loss_fun = MapLoss()
     else:
         param_config.loss_fun = RMSELoss()
-    loss_g, loss_d, loss_curve, best_idx, best_mu = dfnn_ite_rules_mu(15, param_config, dataset)
+
+    loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve, best_idx, best_mu = \
+        dfnn_ite_rules_mu(15, param_config, dataset)
 
     data_save = dict()
-    data_save['loss_g_tsr'] = loss_g
+    data_save['loss_c_train'] = loss_c_train
+    data_save['loss_c_test'] = loss_c_test
+    data_save['loss_d_train'] = loss_d_train
+    data_save['loss_d_test'] = loss_d_test
     data_save['loss_curve_list'] = loss_curve
-    data_save['loss_d_tsr'] = loss_d
     data_save['best_idx'] = best_idx
     data_save['best_mu'] = best_mu
     data_save_dir = "./results/"
