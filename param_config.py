@@ -4,6 +4,7 @@ from loss_utils import LossComputeBase
 from rules import RuleBase
 from partition import KFoldPartition
 from loss_utils import LossFunc
+from utils import Logger
 import torch
 
 
@@ -39,6 +40,7 @@ class ParamConfig(object):
         self.loss_fun = LossFunc()
         self.rules = RuleBase()
         self.patition_strategy = KFoldPartition(self.kfolds)
+        self.log = Logger()
 
 
 
