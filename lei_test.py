@@ -1,9 +1,9 @@
 import torch
 from utils import dataset_parse
 
-dataset_file = 'eegDual_sub1'
+dataset_file = 'CASP'
 data_save_dir = "./results/"
-data_save_file = f"{data_save_dir}{dataset_file}_fc.pt"
+data_save_file = f"{data_save_dir}{dataset_file}_k.pt"
 data_load = torch.load(data_save_file)
 
 loss_g_mean = data_load['loss_g_tsr'].mean(2)
