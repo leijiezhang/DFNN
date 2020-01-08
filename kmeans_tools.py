@@ -8,11 +8,11 @@ class KmeansUtils(object):
     def __init__(self):
         useless = 0
 
-    def kmeans_admm(self, data: List[Dataset], n_rules, n_agents, rules: RuleBase):
+    def kmeans_admm(self, para_rho, data: List[Dataset], n_rules, n_agents, rules: RuleBase):
         # rules = self.rules_kmeans(data.X, n_rules)
         # calculate H matrix and w for each node
         # parameters initialize
-        rho = 1
+        rho = para_rho
         max_steps = 300
         admm_reltol = 0.001
         admm_abstol = 0.0001
@@ -33,13 +33,13 @@ class KmeansUtils(object):
                 # ye's method
                 # dist_x = center_global.centerl(center_global) / 2 - center_global.mm(data[j].X.t())
                 # labels = torch.min(dist_x, 0)[1]
-                rules.update_rules(data[j].X, center_global)
+                rules.update_rules(data[int(j)].X, center_global)
                 labels = rules.x_center_idx
                 for k in torch.arange(n_rules):
                     label_ids = torch.where(labels == k)
                     # if no sample is related to this center
                     if not label_ids[0].shape[0] == 0:
-                        smpl_k = data[j].X[label_ids[0], :]
+                        smpl_k = data[int(j)].X[label_ids[0], :]
                         center_agent_set[j, k, :] = smpl_k.mean(0)
                     else:
                         center_agent_set[j, k, :] = center_global[k, :]
@@ -49,8 +49,8 @@ class KmeansUtils(object):
 
             # for each cluster
             for j in torch.arange(n_rules):
-                center_global[j, :] = (rho * center_agent_set[:, j, :].sum(0) +\
-                                   lagrange_mul[:, j, :].sum(0)) / (rho * n_agents)
+                center_global[j, :] = (rho * center_agent_set[:, j, :].sum(0)
+                                       + lagrange_mul[:, j, :].sum(0)) / (rho * n_agents)
 
             # compute the update for the Lagrange Mltipliers
             for j in torch.arange(n_rules):
@@ -62,7 +62,7 @@ class KmeansUtils(object):
 
             errors.append(torch.norm(stop_crtn))
 
-            if errors[i] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
+            if errors[int(i)] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
                 break
         center_optimal = center_global
 

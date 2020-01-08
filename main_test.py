@@ -19,7 +19,7 @@ param_config = ParamConfig()
 #                 'strength', 'telemonitoring', 'yacht']
 param_config.dataset_list = ['eegDual_sub1']
 # para_mu_list = torch.linspace(-4, 4, 9)
-para_mu_list = -3 * torch.zeros(1)
+para_mu_list = -2 * torch.zeros(1)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
 param_config.para_mu_current = param_config.para_mu_list[0]

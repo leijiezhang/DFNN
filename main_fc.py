@@ -6,6 +6,7 @@ from h_utils import HFuzzy
 from fnn_solver import FnnSolveReg
 from loss_utils import LossComputeFuzzy
 from rules import RuleFuzzyCmeans
+from dataset import Result
 from utils import load_data
 import torch
 import os
@@ -41,17 +42,13 @@ for i in torch.arange(len(param_config.dataset_list)):
     else:
         param_config.loss_fun = RMSELoss()
 
-    loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve, best_idx, best_mu = \
+    loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \
         dfnn_ite_rules_mu(15, param_config, dataset)
 
     loss_c_train_mean = loss_c_train.mean(2)
     loss_c_test_mean = loss_c_test.mean(2)
     loss_d_train_mean = loss_d_train.mean(2)
     loss_d_test_mean = loss_d_test.mean(2)
-    loss_c_train_best = loss_c_train_mean[best_idx, :]
-    loss_c_test_best = loss_c_test_mean[best_idx, :]
-    loss_d_train_best = loss_d_train_mean[best_idx, :]
-    loss_d_test_best = loss_d_test_mean[best_idx, :]
 
     results = Result()
     results.loss_c_train = loss_c_train
@@ -64,13 +61,6 @@ for i in torch.arange(len(param_config.dataset_list)):
     results.loss_d_test_mean = loss_d_test_mean
 
     results.loss_curve = loss_curve
-    results.best_idx = best_idx
-    results.best_mu = best_mu
-
-    results.loss_c_train_best = loss_c_train_best
-    results.loss_c_test_best = loss_c_test_best
-    results.loss_d_train_best = loss_d_train_best
-    results.loss_d_test_best = loss_d_test_best
 
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):

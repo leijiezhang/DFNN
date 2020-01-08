@@ -128,7 +128,7 @@ class Result(object):
     """
     todo: save results
     """
-    def __init__(self):
+    def __init__(self, param_mu_list):
         self.loss_c_train = torch.empty(1)
         self.loss_c_train_mean = torch.empty(1)
         self.loss_c_test = torch.empty(1)
@@ -140,6 +140,7 @@ class Result(object):
 
         self.loss_curve = []
         self.best_idx = 0
+        self.param_mu_list = param_mu_list
         self.best_mu = 0.1
 
         self.loss_c_train_best = torch.empty(1)
@@ -147,5 +148,11 @@ class Result(object):
         self.loss_d_train_best = torch.empty(1)
         self.loss_d_test_best = torch.empty(1)
 
-    def run(self):
-        pass
+    def get_best_idx(self, best_idx):
+        self.best_idx = best_idx
+        self.best_mu = self.param_mu_list[best_idx]
+
+        self.loss_c_train_best = self.loss_c_train[best_idx, :]
+        self.loss_c_test_best = self.loss_c_test[best_idx, :]
+        self.loss_d_train_best = self.loss_d_train[best_idx, :]
+        self.loss_d_test_best = self.loss_d_test[best_idx, :]

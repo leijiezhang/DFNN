@@ -32,6 +32,8 @@ class ParamConfig(object):
         para_mu_list = torch.linspace(-4, 4, 9)
         # para_mu_list = torch.linspace(-3, -1, 3)
         self.para_mu_list = torch.pow(10, para_mu_list).double()
+        # set rho
+        self.para_rho = 10
 
         # initiate tools
         self.h_computer = HBase()
