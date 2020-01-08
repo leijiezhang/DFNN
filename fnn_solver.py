@@ -46,17 +46,18 @@ class FnnSolveCls(FnnSolveBase):
         n_rule = self.h.shape[0]
         n_smpl = self.h.shape[1]
         n_fea = self.h.shape[2]
+        n_output = self.y.shape[1]
         h_cal = self.h.permute((1, 0, 2))  # N * n_rules * (d + 1)
         len_w = n_rule * n_fea
         h_cal = h_cal.reshape(n_smpl, len_w)  # squess the last dimension
 
-        w_optimal = torch.zeros(len_w, self.y.shape[1])
+        w_optimal = torch.zeros(len_w, n_output).double()
 
         sh_cal = 0.001  # initiate the threshold
         w_loss = 1  # initiate the loss of W
         w_loss_list = []
 
-        for i in torch.arange(self.y.shape[1]):
+        for i in torch.arange(n_output):
             w_tmp = w_optimal[:, i].unsqueeze(1).double()
             y_tmp = self.y[:, i].unsqueeze(1).double()
             s = torch.ones(n_smpl, 1).double()
@@ -73,5 +74,7 @@ class FnnSolveCls(FnnSolveBase):
                 w_loss = torch.norm((w_tmp - w_old))
                 w_loss_list.append(w_loss)
             w_optimal[:, i] = w_tmp.squeeze()
+        w_optimal = w_optimal.permute((1, 0))
+        w_optimal = w_optimal.reshape(n_output, n_rule, n_fea)
 
         return w_optimal
