@@ -57,39 +57,56 @@ def dataset_parse(dataset_name):
 
 
 class Logger(object):
-    def __init__(self, clevel=logging.DEBUG, Flevel=logging.DEBUG):
-        # create dictionary
-        file_name = f"./log/log_{time.strftime('%M_%S ',time.localtime(time.time()))}.log"
-        if not os.path.exists(file_name):
-            folder_name = './log'
-            if not os.path.exists(folder_name):
-                os.makedirs(folder_name)
-            open(file_name, 'a')
-        self.logger = logging.getLogger(file_name)
-        self.logger.setLevel(logging.DEBUG)
+    def __init__(self, is_write = False, clevel=logging.DEBUG, Flevel=logging.DEBUG):
+        if is_write:
+            # create dictionary
+            file_name = f"./log/log_{time.strftime('%M_%S ', time.localtime(time.time()))}.log"
+            if not os.path.exists(file_name):
+                folder_name = './log'
+                if not os.path.exists(folder_name):
+                    os.makedirs(folder_name)
+                open(file_name, 'a')
+            self.logger = logging.getLogger(file_name)
+        else:
+            self.logger = logging.getLogger()
+
         fmt = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
         # set CMD dairy
         sh = logging.StreamHandler()
         sh.setFormatter(fmt)
         sh.setLevel(clevel)
-        # set log file
-        fh = logging.FileHandler(file_name, encoding='utf-8')
-        fh.setFormatter(fmt)
-        fh.setLevel(Flevel)
         self.logger.addHandler(sh)
-        self.logger.addHandler(fh)
+        if is_write:
+            # set log file
+            fh = logging.FileHandler(file_name, encoding='utf-8')
+            fh.setFormatter(fmt)
+            fh.setLevel(Flevel)
+
+            self.logger.addHandler(fh)
 
     def debug(self, message):
+        # self.font_color('\033[0;32m%s\033[0m')
+        # self.logger.setLevel(logging.INFO)
         self.logger.debug(message)
 
     def info(self, message):
+        # self.font_color('\033[0;34m%s\033[0m')
         self.logger.info(message)
 
     def war(self, message):
+        # self.font_color('\033[0;37m%s\033[0m')
         self.logger.warn(message)
 
     def error(self, message):
+        # self.font_color('\033[0;31m%s\033[0m')
         self.logger.error(message)
 
     def cri(self, message):
+        # self.font_color('\033[0;35m%s\033[0m')
         self.logger.critical(message)
+
+    def font_color(self, color):
+        # set dairy with different color
+        formatter = logging.Formatter(color % '[%(asctime)s] - [%(levelname)s] - %(message)s')
+        self.ch.setFormatter(formatter)
+        self.logger.addHandler(self.ch)
