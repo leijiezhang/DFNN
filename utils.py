@@ -57,56 +57,53 @@ def dataset_parse(dataset_name):
 
 
 class Logger(object):
-    def __init__(self, is_write = False, clevel=logging.DEBUG, Flevel=logging.DEBUG):
-        if is_write:
-            # create dictionary
-            file_name = f"./log/log_{time.strftime('%M_%S ', time.localtime(time.time()))}.log"
-            if not os.path.exists(file_name):
-                folder_name = './log'
-                if not os.path.exists(folder_name):
-                    os.makedirs(folder_name)
-                open(file_name, 'a')
-            self.logger = logging.getLogger(file_name)
-        else:
-            self.logger = logging.getLogger()
+    def __init__(self, to_file=False, clevel=logging.DEBUG, Flevel=logging.DEBUG):
+        self.to_file = to_file
+        # create dictionary
+        file_name = f"./log/log_{time.strftime('%M_%S ',time.localtime(time.time()))}.log"
+        self.file_name = file_name
+        if not os.path.exists(file_name):
+            folder_name = './log'
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
 
-        fmt = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.DEBUG)
         # set CMD dairy
-        sh = logging.StreamHandler()
-        sh.setFormatter(fmt)
-        sh.setLevel(clevel)
-        self.logger.addHandler(sh)
-        if is_write:
+        self.sh = logging.StreamHandler()
+        if self.to_file:
             # set log file
-            fh = logging.FileHandler(file_name, encoding='utf-8')
-            fh.setFormatter(fmt)
-            fh.setLevel(Flevel)
-
-            self.logger.addHandler(fh)
+            self.fh = logging.FileHandler(file_name, encoding='utf-8')
 
     def debug(self, message):
-        # self.font_color('\033[0;32m%s\033[0m')
-        # self.logger.setLevel(logging.INFO)
+        self.set_color('\033[0;34m%s\033[0m', logging.DEBUG)
         self.logger.debug(message)
 
     def info(self, message):
-        # self.font_color('\033[0;34m%s\033[0m')
+        self.set_color('\033[0;30m%s\033[0m', logging.INFO)
         self.logger.info(message)
 
     def war(self, message):
-        # self.font_color('\033[0;37m%s\033[0m')
-        self.logger.warn(message)
+        self.set_color('\033[0;32m%s\033[0m', logging.WARNING)
+        self.logger.warning(message)
 
     def error(self, message):
-        # self.font_color('\033[0;31m%s\033[0m')
+        self.set_color('\033[0;31m%s\033[0m', logging.ERROR)
         self.logger.error(message)
 
     def cri(self, message):
-        # self.font_color('\033[0;35m%s\033[0m')
+        self.set_color('\033[0;35m%s\033[0m', logging.CRITICAL)
         self.logger.critical(message)
 
-    def font_color(self, color):
-        # set dairy with different color
-        formatter = logging.Formatter(color % '[%(asctime)s] - [%(levelname)s] - %(message)s')
-        self.ch.setFormatter(formatter)
-        self.logger.addHandler(self.ch)
+    def set_color(self, color, level):
+        fmt = logging.Formatter(color % '[%(asctime)s] [%(levelname)s] %(message)s', '%Y-%m-%d %H:%M:%S')
+        # set CMD dairy
+        self.sh.setFormatter(fmt)
+        self.sh.setLevel(level)
+        self.logger.addHandler(self.sh)
+        if self.to_file:
+            # set log file
+            self.fh.setFormatter(fmt)
+            self.fh.setLevel(level)
+            self.logger.addHandler(self.fh)
+

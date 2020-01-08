@@ -1,22 +1,10 @@
-import torch
-from utils import dataset_parse
-from dataset import Result
-
-dataset_file = 'eegDual_sub1'
-# dataset_file = 'CASP'
-data_save_dir = "./results/"
-data_save_file = f"{data_save_dir}{dataset_file}_k.pt"
-data_load = torch.load(data_save_file)
+from utils import Logger
 
 
-
-torch.save(results, data_save_file)
-loss_g_mean = data_load['loss_g_tsr'].mean(2)
-loss_g_mean_best = loss_g_mean[data_load['best_idx'], :]
-
-loss_d_mean = data_load['loss_d_tsr'].mean(2)
-loss_d_mean_best = loss_d_mean[data_load['best_idx'], :]
-
-loss_curv_mean_best = data_load['loss_curve_list'][data_load['best_idx']][1]
-
+log = Logger()
+log.debug(f"Navigate your code with ease. Click on function and method calls to!")
+log.info(f"Navigate your code with ease. Click on function and method calls to!")
+log.war(f"Navigate your code with ease. Click on function and method calls to!")
+log.error(f"Navigate your code with ease. Click on function and method calls to!")
+log.cri(f"Navigate your code with ease. Click on function and method calls to!")
 print('lei')
