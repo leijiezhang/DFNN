@@ -3,10 +3,11 @@ from partition import KFoldPartition
 from loss_utils import MapLoss, RMSELoss
 from dfnn_run import dfnn_ite_rules_mu
 from h_utils import HNormal
-from fnn_solver import FnnSolveReg
+from fnn_solver import FnnSolveCls
 from loss_utils import LossComputeNormal
 from rules import RuleKmeans
 from utils import load_data
+from dataset import Result
 import torch
 import os
 
@@ -20,7 +21,7 @@ para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
 param_config.h_computer = HNormal()
-param_config.fnn_solver = FnnSolveReg()
+param_config.fnn_solver = FnnSolveCls()
 param_config.loss_compute = LossComputeNormal()
 param_config.rules = RuleKmeans()
 param_config.n_agents = 5
@@ -46,16 +47,36 @@ for i in torch.arange(len(param_config.dataset_list)):
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve, best_idx, best_mu = \
         dfnn_ite_rules_mu(15, param_config, dataset)
 
-    data_save = dict()
-    data_save['loss_c_train'] = loss_c_train
-    data_save['loss_c_test'] = loss_c_test
-    data_save['loss_d_train'] = loss_d_train
-    data_save['loss_d_test'] = loss_d_test
-    data_save['loss_curve_list'] = loss_curve
-    data_save['best_idx'] = best_idx
-    data_save['best_mu'] = best_mu
+    loss_c_train_mean = loss_c_train.mean(2)
+    loss_c_test_mean = loss_c_test.mean(2)
+    loss_d_train_mean = loss_d_train.mean(2)
+    loss_d_test_mean = loss_d_test.mean(2)
+    loss_c_train_best = loss_c_train_mean[best_idx, :]
+    loss_c_test_best = loss_c_test_mean[best_idx, :]
+    loss_d_train_best = loss_d_train_mean[best_idx, :]
+    loss_d_test_best = loss_d_test_mean[best_idx, :]
+
+    results = Result()
+    results.loss_c_train = loss_c_train
+    results.loss_c_train_mean = loss_c_train_mean
+    results.loss_c_test = loss_c_test
+    results.loss_c_test_mean = loss_c_test_mean
+    results.loss_d_train = loss_d_train
+    results.loss_d_train_mean = loss_d_train_mean
+    results.loss_d_test = loss_d_test
+    results.loss_d_test_mean = loss_d_test_mean
+
+    results.loss_curve = loss_curve
+    results.best_idx = best_idx
+    results.best_mu = best_mu
+
+    results.loss_c_train_best = loss_c_train_best
+    results.loss_c_test_best = loss_c_test_best
+    results.loss_d_train_best = loss_d_train_best
+    results.loss_d_test_best = loss_d_test_best
+
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
-    data_save_file = f"{data_save_dir}{dataset_file}_k.pt"
-    torch.save(data_save, data_save_file)
+    data_save_file = f"{data_save_dir}{dataset_file}_k_sigmoid.pt"
+    torch.save(results, data_save_file)

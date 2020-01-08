@@ -122,3 +122,30 @@ class Dataset(object):
                                         y[disp_part_idx[0], :], self.task)
             d_train_data.append(disp_part_dataset)
         return d_train_data
+
+
+class Result(object):
+    """
+    todo: save results
+    """
+    def __init__(self):
+        self.loss_c_train = torch.empty(1)
+        self.loss_c_train_mean = torch.empty(1)
+        self.loss_c_test = torch.empty(1)
+        self.loss_c_test_mean = torch.empty(1)
+        self.loss_d_train = torch.empty(1)
+        self.loss_d_train_mean = torch.empty(1)
+        self.loss_d_test = torch.empty(1)
+        self.loss_d_test_mean = torch.empty(1)
+
+        self.loss_curve = []
+        self.best_idx = 0
+        self.best_mu = 0.1
+
+        self.loss_c_train_best = torch.empty(1)
+        self.loss_c_test_best = torch.empty(1)
+        self.loss_d_train_best = torch.empty(1)
+        self.loss_d_test_best = torch.empty(1)
+
+    def run(self):
+        pass

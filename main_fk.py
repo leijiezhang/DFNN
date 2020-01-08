@@ -46,16 +46,36 @@ for i in torch.arange(len(param_config.dataset_list)):
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve, best_idx, best_mu = \
         dfnn_ite_rules_mu(15, param_config, dataset)
 
-    data_save = dict()
-    data_save['loss_c_train'] = loss_c_train
-    data_save['loss_c_test'] = loss_c_test
-    data_save['loss_d_train'] = loss_d_train
-    data_save['loss_d_test'] = loss_d_test
-    data_save['loss_curve_list'] = loss_curve
-    data_save['best_idx'] = best_idx
-    data_save['best_mu'] = best_mu
+    loss_c_train_mean = loss_c_train.mean(2)
+    loss_c_test_mean = loss_c_test.mean(2)
+    loss_d_train_mean = loss_d_train.mean(2)
+    loss_d_test_mean = loss_d_test.mean(2)
+    loss_c_train_best = loss_c_train_mean[best_idx, :]
+    loss_c_test_best = loss_c_test_mean[best_idx, :]
+    loss_d_train_best = loss_d_train_mean[best_idx, :]
+    loss_d_test_best = loss_d_test_mean[best_idx, :]
+
+    results = Result()
+    results.loss_c_train = loss_c_train
+    results.loss_c_train_mean = loss_c_train_mean
+    results.loss_c_test = loss_c_test
+    results.loss_c_test_mean = loss_c_test_mean
+    results.loss_d_train = loss_d_train
+    results.loss_d_train_mean = loss_d_train_mean
+    results.loss_d_test = loss_d_test
+    results.loss_d_test_mean = loss_d_test_mean
+
+    results.loss_curve = loss_curve
+    results.best_idx = best_idx
+    results.best_mu = best_mu
+
+    results.loss_c_train_best = loss_c_train_best
+    results.loss_c_test_best = loss_c_test_best
+    results.loss_d_train_best = loss_d_train_best
+    results.loss_d_test_best = loss_d_test_best
+
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
     data_save_file = f"{data_save_dir}{dataset_file}_fk.pt"
-    torch.save(data_save, data_save_file)
+    torch.save(results, data_save_file)
