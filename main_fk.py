@@ -52,7 +52,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     loss_d_train_mean = loss_d_train.mean(2)
     loss_d_test_mean = loss_d_test.mean(2)
 
-    results = Result()
+    results = Result(param_config.para_mu_list)
     results.loss_c_train = loss_c_train
     results.loss_c_train_mean = loss_c_train_mean
     results.loss_c_test = loss_c_test
