@@ -74,7 +74,7 @@ class KFoldPartition(PartitionStrategy):
         self.y_length = 0
 
     def partition(self, y: torch.Tensor):
-        kf = KFold(n_splits=self.K, shuffle=True)
+        kf = KFold(n_splits=self.K, shuffle=False)
         for train_index, test_index in kf.split(y):
             self.train_indexes.append(train_index)
             self.test_indexes.append(test_index)

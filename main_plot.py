@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 dataset_file = 'eegDual_sub1'
 # dataset_file = 'CASP'
 data_save_dir = "./results/"
-data_save_dir = f"{data_save_dir}{dataset_file}_k.pt"
+data_save_dir = f"{data_save_dir}{dataset_file}_k_sigmoid.pt"
 results: Result = torch.load(data_save_dir)
 loss_c_train = results.loss_c_train_best
 loss_d_train = results.loss_d_train_best
