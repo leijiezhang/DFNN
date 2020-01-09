@@ -3,9 +3,9 @@ from partition import KFoldPartition
 from loss_utils import MapLoss, RMSELoss
 from dfnn_run import dfnn_ite_rules_mu
 from h_utils import HNormal
-from fnn_solver import FnnSolveReg
+from fnn_solver import FnnSolveCls
 from loss_utils import LossComputeNormal
-from rules import RuleFuzzyKmeans
+from rules import RuleKmeans
 from utils import load_data
 from dataset import Result
 import torch
@@ -21,9 +21,9 @@ para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
 param_config.h_computer = HNormal()
-param_config.fnn_solver = FnnSolveReg()
+param_config.fnn_solver = FnnSolveCls()
 param_config.loss_compute = LossComputeNormal()
-param_config.rules = RuleFuzzyKmeans()
+param_config.rules = RuleKmeans()
 param_config.n_agents = 5
 # generate partitions of dataset
 param_config.patition_strategy = KFoldPartition(param_config.kfolds)
@@ -37,11 +37,13 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file)
     param_config.log.info(f"dataset: {dataset.name} is loaded for {dataset.task}.")
     dataset.generate_n_partitions(param_config.runs, param_config.patition_strategy)
-    print(dataset.name)
+    param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':
+        param_config.log.war(f"=====Mission: Classification=======")
         param_config.loss_fun = MapLoss()
     else:
+        param_config.log.war(f"=====Mission: Regression=======")
         param_config.loss_fun = RMSELoss()
 
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \
@@ -67,5 +69,5 @@ for i in torch.arange(len(param_config.dataset_list)):
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
-    data_save_file = f"{data_save_dir}{dataset_file}_fk.pt"
+    data_save_file = f"{data_save_dir}{dataset_file}_k_sigmoid.pt"
     torch.save(results, data_save_file)

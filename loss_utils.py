@@ -24,7 +24,7 @@ class RMSELoss(LossFunc):
         self.eps = eps
 
     def forward(self, y, yhat):
-        loss = torch.sqrt(torch.pow((yhat - y), 2).sum() / (y.shape[0] * y.var()))
+        loss = torch.sqrt(torch.norm(yhat - y).pow(2) / (y.shape[0] * y.var()))
         return loss
 
 
@@ -88,29 +88,6 @@ class LossComputeNormal(LossComputeBase):
         # calculate Y hat
         y_hat = h_cal.mm(self.rules.consequent_list.reshape(self.data.Y.shape[1],
                                                             n_rule * n_fea).t())
-        loss = self.loss_function.forward(self.data.Y, y_hat)
-        return loss
-
-
-class LossComputeFuzzy(LossComputeBase):
-    def __init__(self):
-        super(LossComputeFuzzy, self).__init__()
-
-    def comute_loss(self):
-        """
-        """
-        # update rules on test data
-        self.rules.update_rules(self.data.X, self.rules.center_list)
-        h_test = self.h_util.comute_h(self.data.X, self.rules)
-        n_rule = h_test.shape[0]
-        n_smpl = h_test.shape[1]
-        n_fea = h_test.shape[2]
-        h_cal = h_test.permute((1, 0, 2))  # N * n_rules * (d + 1)
-        h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
-
-        # calculate Y hat
-        y_hat = h_cal.mm(self.rules.consequent_list.reshape(self.data.Y.shape[1],
-                                                                 n_rule * n_fea).t())
         loss = self.loss_function.forward(self.data.Y, y_hat)
         return loss
 

@@ -2,9 +2,9 @@ from param_config import ParamConfig
 from partition import KFoldPartition
 from loss_utils import MapLoss, RMSELoss
 from dfnn_run import dfnn_ite_rules_mu
-from h_utils import HFuzzy
-from fnn_solver import FnnSolveReg
-from loss_utils import LossComputeFuzzy
+from h_utils import HNormal
+from fnn_solver import FnnSolveReg, FnnSolveCls
+from loss_utils import LossComputeNormal
 from rules import RuleFuzzyCmeans
 from dataset import Result
 from utils import load_data
@@ -19,9 +19,10 @@ param_config.dataset_list = ['eegDual_sub1']
 para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
-param_config.h_computer = HFuzzy()
+param_config.h_computer = HNormal()
+
 param_config.fnn_solver = FnnSolveReg()
-param_config.loss_compute = LossComputeFuzzy()
+param_config.loss_compute = LossComputeNormal()
 param_config.rules = RuleFuzzyCmeans()
 param_config.n_agents = 5
 # generate partitions of dataset
@@ -35,11 +36,13 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file)
     param_config.log.info(f"dataset: {dataset.name} is loaded for {dataset.task}.")
     dataset.generate_n_partitions(param_config.runs, param_config.patition_strategy)
-    print(dataset.name)
+    param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':
+        param_config.log.war(f"=====Mission: Classification=======")
         param_config.loss_fun = MapLoss()
     else:
+        param_config.log.war(f"=====Mission: Regression=======")
         param_config.loss_fun = RMSELoss()
 
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \

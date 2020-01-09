@@ -60,7 +60,7 @@ class Logger(object):
     def __init__(self, to_file=False, clevel=logging.DEBUG, Flevel=logging.DEBUG):
         self.to_file = to_file
         # create dictionary
-        file_name = f"./log/log_{time.strftime('%M_%S ',time.localtime(time.time()))}.log"
+        file_name = f"./log/log_{time.strftime('%H-%M-%S ',time.localtime(time.time()))}.log"
         self.file_name = file_name
         if not os.path.exists(file_name):
             folder_name = './log'

@@ -1,6 +1,6 @@
 import torch
 import skfuzzy
-from rules import RuleBase
+from rules import RuleBase, RuleKmeans, RuleFuzzyCmeans
 import abc
 
 
@@ -18,7 +18,7 @@ class HNormal(HBase):
     def __init__(self):
         super(HNormal, self).__init__()
 
-    def comute_h(self, x: torch.Tensor, rules: RuleBase):
+    def comute_h(self, x: torch.Tensor, rules: RuleKmeans):
         n_smpl = x.shape[0]
         n_fea = x.shape[1]
         n_rules = rules.n_rules
@@ -46,9 +46,9 @@ class HFuzzy(HBase):
     def __init__(self):
         super(HFuzzy, self).__init__()
 
-    def comute_h(self, x: torch.Tensor, rules: RuleBase):
+    def comute_h(self, x: torch.Tensor, rules: RuleFuzzyCmeans):
         """
-            todo: using fuzzy cmeans to get h
+            todo: using fuzzy partition instead of fuzzy sets to get h
             :return:
             """
         n_smpl = x.shape[0]

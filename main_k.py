@@ -37,11 +37,13 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file)
     param_config.log.info(f"dataset: {dataset.name} is loaded for {dataset.task}.")
     dataset.generate_n_partitions(param_config.runs, param_config.patition_strategy)
-    print(dataset.name)
+    param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':
+        param_config.log.war(f"=====Mission: Classification=======")
         param_config.loss_fun = MapLoss()
     else:
+        param_config.log.war(f"=====Mission: Regression=======")
         param_config.loss_fun = RMSELoss()
 
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \
