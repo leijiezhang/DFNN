@@ -12,7 +12,7 @@ class LossFunc(nn.Module):
         self.eps = eps
 
     @abc.abstractmethod
-    def forward(self, yhat, y):
+    def forward(self, yhat, y: torch.Tensor):
         loss = []
         return loss
 
@@ -24,7 +24,7 @@ class RMSELoss(LossFunc):
         self.eps = eps
 
     def forward(self, y, yhat):
-        loss = torch.sqrt(torch.norm(yhat - y).pow(2) / (y.shape[0] * y.var()))
+        loss = torch.sqrt(torch.norm(yhat - y).pow(2) / (y.shape[0])) / y.mean()
         return loss
 
 

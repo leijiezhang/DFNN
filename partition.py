@@ -12,7 +12,7 @@ class PartitionStrategy(object):
         self.num_folds = 0
 
     @abc.abstractmethod
-    def partition(self, y: torch.Tensor):
+    def partition(self, y: torch.Tensor, random_state, is_shuffle):
         return self
 
     @abc.abstractmethod
@@ -39,31 +39,6 @@ class PartitionStrategy(object):
         self.current_fold = cur_fold
 
 
-class NoPartition(PartitionStrategy):
-    def __init__(self):
-        super(NoPartition, self).__init__()
-        self.y_length = 0
-        self.num_folds = 1
-
-    def partition(self, y: torch.Tensor):
-        self.y_length = y.shape[0]
-        self.set_current_folds(0)
-
-    def get_train_indexes(self):
-        train_idx = torch.ones(self.y_length, 1)
-        num_train_idx = torch.arange(self.y_length)
-        return train_idx, num_train_idx
-
-    def get_test_indexes(self):
-        test_idx = torch.ones(self.y_length, 1)
-        num_test_idx = torch.arange(self.y_length)
-        return test_idx, num_test_idx
-
-    def get_description(self):
-        d = ('Both Training and Test sets include all data (%i samples)', self.y_length)
-        return d
-
-
 class KFoldPartition(PartitionStrategy):
     def __init__(self, k):
         super(KFoldPartition, self).__init__()
@@ -73,8 +48,8 @@ class KFoldPartition(PartitionStrategy):
         self.num_folds = k
         self.y_length = 0
 
-    def partition(self, y: torch.Tensor):
-        kf = KFold(n_splits=self.K, shuffle=False)
+    def partition(self, y: torch.Tensor, random_state, is_shuffle):
+        kf = KFold(n_splits=self.K, random_state=random_state, shuffle=is_shuffle)
         for train_index, test_index in kf.split(y):
             self.train_indexes.append(train_index)
             self.test_indexes.append(test_index)

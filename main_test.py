@@ -52,26 +52,26 @@ for i in torch.arange(len(param_config.dataset_list)):
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve, best_idx, best_mu = \
     #     dfnn_ite_rules_mu(15, param_config, dataset)
     param_config.n_agents = 5
-    param_config.fnn_solver = FnnSolveCls()
-    loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve_list = \
-        dfnn_method(5, param_config, dataset)
-
-    loss_c_train_mean = loss_c_train.mean()
-    loss_c_test_mean = loss_c_test.mean()
-    loss_d_train_mean = loss_d_train.mean()
-    loss_d_test_mean = loss_d_test.mean()
-
-    results_cls = Result(param_config.para_mu_list)
-    results_cls.loss_c_train = loss_c_train
-    results_cls.loss_c_train_mean = loss_c_train_mean
-    results_cls.loss_c_test = loss_c_test
-    results_cls.loss_c_test_mean = loss_c_test_mean
-    results_cls.loss_d_train = loss_d_train
-    results_cls.loss_d_train_mean = loss_d_train_mean
-    results_cls.loss_d_test = loss_d_test
-    results_cls.loss_d_test_mean = loss_d_test_mean
-
-    results_cls.loss_curve = loss_curve_list
+    # param_config.fnn_solver = FnnSolveCls()
+    # loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve_list = \
+    #     dfnn_method(5, param_config, dataset)
+    #
+    # loss_c_train_mean = loss_c_train.mean()
+    # loss_c_test_mean = loss_c_test.mean()
+    # loss_d_train_mean = loss_d_train.mean()
+    # loss_d_test_mean = loss_d_test.mean()
+    #
+    # results_cls = Result(param_config.para_mu_list)
+    # results_cls.loss_c_train = loss_c_train
+    # results_cls.loss_c_train_mean = loss_c_train_mean
+    # results_cls.loss_c_test = loss_c_test
+    # results_cls.loss_c_test_mean = loss_c_test_mean
+    # results_cls.loss_d_train = loss_d_train
+    # results_cls.loss_d_train_mean = loss_d_train_mean
+    # results_cls.loss_d_test = loss_d_test
+    # results_cls.loss_d_test_mean = loss_d_test_mean
+    #
+    # results_cls.loss_curve = loss_curve_list
 
     param_config.fnn_solver = FnnSolveReg()
     loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve_list = \

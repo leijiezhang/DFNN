@@ -19,18 +19,13 @@ class Dataset(object):
         self.X = x
         self.Y = y
         self.task = task
-        self.shuffles = None
+        self.shuffle = True
+        self.random_state = 1
         self.partitions = []
         self.distry_partitions: PartitionStrategy = []
         self.current_partition = 0
         self.n_agents = 1  # use only if get distribute dataset, this denotes the number of distribute
         self.n_fea = self.X.shape[1]
-
-    def shuffle(self, n):
-        len_y = self.Y.shape[0]
-        self.shuffles = torch.zeros(n, len_y)
-        for i in torch.arange(n):
-            self.shuffles[i, :] = torch.randperm(len_y)
 
     @staticmethod
     def mapminmax(x: torch.Tensor, l_range=-1, u_range=1):
@@ -67,13 +62,9 @@ class Dataset(object):
         self.current_partition = 0
 
         for i in torch.arange(n):
-            if self.shuffles is not None:
-                # shuffel the dataset
-                current_y = self.shuffles[i]
-            else:
-                current_y = self.Y
+            current_y = self.Y
 
-            partition_strategy.partition(current_y)
+            partition_strategy.partition(current_y, self.random_state, self.shuffle)
             self.partitions.append(partition_strategy)
 
     def generate_single_partitions(self, partition_strategy):
@@ -86,13 +77,8 @@ class Dataset(object):
         self.current_partition = cur_part
 
     def get_fold_data(self, n_fold=None):
-
-        if self.shuffles is not None:
-            x = self.X[self.shuffles[self.current_partition, :]]
-            y = self.Y[self.shuffles[self.current_partition, :]]
-        else:
-            x = self.X
-            y = self.Y
+        x = self.X
+        y = self.Y
         partition_strategy = self.partitions[self.current_partition]
         if n_fold is not None:
             partition_strategy.set_current_folds(n_fold)
@@ -108,7 +94,7 @@ class Dataset(object):
     def generate_distribute(self, d_partition_strategy):
         self.n_agents = d_partition_strategy.get_num_folds()
         self.distry_partitions = d_partition_strategy
-        self.distry_partitions.partition(self.Y)
+        self.distry_partitions.partition(self.Y, self.random_state, self.shuffle)
 
     def distribute_dataset(self):
         d_train_data = []
