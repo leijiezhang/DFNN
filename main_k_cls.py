@@ -15,7 +15,7 @@ import os
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-param_config.dataset_list = ['eegDual_sub1']
+param_config.dataset_list = ['eegDual_sub1', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard']
 para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.zeros(1)
 # para_mu_list = torch.linspace(-3, -1, 3)
@@ -69,5 +69,5 @@ for i in torch.arange(len(param_config.dataset_list)):
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
-    data_save_file = f"{data_save_dir}{dataset_file}_k_sigmoid.pt"
+    data_save_file = f"{data_save_dir}{dataset_file}_k_cls.pt"
     torch.save(results, data_save_file)

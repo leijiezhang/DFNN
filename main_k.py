@@ -3,7 +3,7 @@ from partition import KFoldPartition
 from loss_utils import MapLoss, RMSELoss
 from dfnn_run import dfnn_ite_rules_mu
 from h_utils import HNormal
-from fnn_solver import FnnSolveCls
+from fnn_solver import FnnSolveReg
 from loss_utils import LossComputeNormal
 from rules import RuleKmeans
 from utils import load_data
@@ -15,13 +15,13 @@ import os
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-param_config.dataset_list = ['eegDual_sub1']
+param_config.dataset_list = ['eegDual_sub1', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard']
 para_mu_list = torch.linspace(-4, 4, 9)
 # para_mu_list = torch.zeros(1)
 # para_mu_list = torch.linspace(-3, -1, 3)
 param_config.para_mu_list = torch.pow(10, para_mu_list).double()
 param_config.h_computer = HNormal()
-param_config.fnn_solver = FnnSolveCls()
+param_config.fnn_solver = FnnSolveReg()
 param_config.loss_compute = LossComputeNormal()
 param_config.rules = RuleKmeans()
 param_config.n_agents = 5
@@ -69,5 +69,5 @@ for i in torch.arange(len(param_config.dataset_list)):
     data_save_dir = "./results/"
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)
-    data_save_file = f"{data_save_dir}{dataset_file}_k_sigmoid.pt"
+    data_save_file = f"{data_save_dir}{dataset_file}_k_reg.pt"
     torch.save(results, data_save_file)
