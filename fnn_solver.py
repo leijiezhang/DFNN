@@ -28,7 +28,7 @@ class FnnSolveReg(FnnSolveBase):
         h_cal = self.h.permute((1, 0, 2))  # N * n_rules * (d + 1)
         h_cal = h_cal.reshape(n_smpl, n_rule * n_fea)  # squess the last dimension
         w_comb_optimal = torch.inverse(h_cal.t().mm(h_cal) +
-                                       self.para_mu * torch.eye(n_rule * n_fea)).mm(h_cal.t().mm(self.y))
+                                       self.para_mu * torch.eye(n_rule * n_fea).double()).mm(h_cal.t().mm(self.y))
         w_comb_optimal = w_comb_optimal.permute((1, 0))
         w_optimal = w_comb_optimal.reshape(self.y.shape[1], n_rule, n_fea)
 

@@ -4,16 +4,31 @@ from dataset import Dataset
 import logging
 import os
 import time
+import csv
 
 
 def load_data(dataset_str):
     dir_dataset = f"./datasets/{dataset_str}.pt"
+
     load_data = torch.load(dir_dataset)
     dataset_name = load_data['name']
-    x = load_data['X']
-    y = load_data['Y']
+    x: torch.Tensor = load_data['X']
+    y: torch.Tensor = load_data['Y']
+
+    if len(y.shape) == 1:
+        y = y.unsqueeze(1)
+
     task = load_data['task']
     dataset = Dataset(dataset_name, x, y, task)
+
+    if 'Y_r' in load_data:
+        y_r: torch.Tensor = load_data['Y_r']
+        dataset.Y_r = y_r
+
+    if 'seperator' in load_data:
+        seperator = load_data['seperator']
+        dataset.seperator = seperator
+
     dataset.normalize(-1, 1)
     return dataset
 
@@ -48,10 +63,54 @@ def dataset_parse(dataset_name):
         for i in torch.arange(y_c.shape[1]):
             y_idx = torch.where(y == y_unique[i])
             y_c[y_idx[0], i] = 1
+        data_save['Y_r'] = y_c
+        data_save['Y'] = y
+    else:
+        data_save['Y'] = y.unsqueeze(1)
+
+    dir_dataset = f"./datasets/{dataset_name}.pt"
+    torch.save(data_save, dir_dataset)
+
+
+def dataset_from_kaggle(dataset_name='heart', label_idx=14, task = 'C'):
+    """
+    parse data from kaggle
+    :param dataset_name:
+    :param label_idx:
+    :return:
+    """
+    label_idx = label_idx - 1
+
+    dir_dataset = f"./datasets/{dataset_name}.csv"
+    with open(dir_dataset, 'r', encoding="utf-8") as f:
+        reader = csv.reader(f)
+        fieldnames = next(reader)
+        n_fea = len(fieldnames)
+        data = torch.empty(0, n_fea)
+        for row in reader:
+            row = list(map(float, row))
+            data_row = torch.tensor(row).unsqueeze(0)
+            data = torch.cat((data, data_row), 0)
+    y = data[:, label_idx]
+    x = data[:, torch.arange(data.size(1)) != label_idx].double()
+    data_save = dict()
+    data_save['task'] = task
+    data_save['name'] = dataset_name
+    data_save['X'] = x
+    if task == 'C':
+        y_min = torch.min(y)
+        y_gap = y_min - 0
+        y = y - y_gap
+        y_unique = torch.unique(y)
+        y_c = torch.zeros(y.shape[0], y_unique.shape[0])
+        for i in torch.arange(y_c.shape[1]):
+            y_idx = torch.where(y == y_unique[i])
+            y_c[y_idx[0], i] = 1
         data_save['Y_r'] = y
         data_save['Y'] = y_c
     else:
-        data_save['Y'] = y.unsqueeze(1)
+        data_save['Y'] = y
+
     dir_dataset = f"./datasets/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)
 

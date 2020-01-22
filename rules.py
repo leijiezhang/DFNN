@@ -111,7 +111,7 @@ class RuleKmeans(RuleBase):
         :param x: the data where rules are generated
         :return: None
         """
-        new_center = torch.zeros((self.center_list.shape[0], self.center_list.shape[1]))
+        new_center = torch.zeros((self.center_list.shape[0], self.center_list.shape[1])).double()
         for k in torch.arange(self.n_rules):
             label_ids = torch.where(self.x_center_idx == k)
             # if no sample is related to this center

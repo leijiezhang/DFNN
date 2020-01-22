@@ -48,8 +48,10 @@ class KFoldPartition(PartitionStrategy):
         self.num_folds = k
         self.y_length = 0
 
-    def partition(self, y: torch.Tensor, random_state, is_shuffle):
+    def partition(self, y: torch.Tensor, random_state=0, is_shuffle=True):
         kf = KFold(n_splits=self.K, random_state=random_state, shuffle=is_shuffle)
+        self.train_indexes = []
+        self.test_indexes = []
         for train_index, test_index in kf.split(y):
             self.train_indexes.append(train_index)
             self.test_indexes.append(test_index)

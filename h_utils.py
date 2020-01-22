@@ -18,7 +18,7 @@ class HNormal(HBase):
     def __init__(self):
         super(HNormal, self).__init__()
 
-    def comute_h(self, x: torch.Tensor, rules: RuleKmeans):
+    def comute_h(self, x: torch.Tensor, rules: RuleBase):
         n_smpl = x.shape[0]
         n_fea = x.shape[1]
         n_rules = rules.n_rules
@@ -29,7 +29,7 @@ class HNormal(HBase):
                                                 rules.widths_list[i][j])
                 mf_set[i, :, j] = mf
 
-        w = torch.prod(mf_set, 2)
+        w = torch.prod(mf_set.double(), 2)
         w_hat = w / torch.sum(w, 0).repeat(n_rules, 1)
         w_hat[torch.isnan(w_hat)] = 1 / n_rules
 

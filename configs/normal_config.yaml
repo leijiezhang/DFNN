@@ -1,0 +1,44 @@
+model: 'fuzzy_tree' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
+
+n_run: 1
+n_kfolds: 10
+
+n_agents: 5
+n_agents_list: []
+
+n_rules: 10
+n_rules_list: []
+
+dataset_list:
+  ['HRSS_anomalous_optimized']
+dataset_list_all:
+  ['abalone', 'airfoil', 'bikesharing',
+   'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',
+   'housing', 'HRSS_anomalous_optimized', 'HRSS_anomalous_standard',
+   'kc_house', 'motor_temperature', 'quake', 'skills',
+   'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
+
+mu_current: 0.01
+mu_list:
+  [0.0001, 0.001, 0.01, 0.1]
+
+rho: 1
+
+#tool functions
+h_computer: 'normal' # 'base' 'normal'
+fnn_solver: 'normal' # 'base' 'normal' 'sigmoid'
+loss_fun: 'likely'  # 'base' 'rmse' 'nrmse' 'mse' 'map' 'likely'
+rules: 'kmeans' # 'kmeans' 'fuzzyc'
+patition_strategy: 'kmeans'
+
+feature_seperator: 'no_seperate' # 'slice_window' 'random_pick' 'no_seperate'
+window_size: 12
+n_level: 3
+# while feature_seperator is slice_window, initiate following parameters
+step: 1
+# while feature_seperator is random_pick, initiate following parameters
+n_repeat_select: 30
+
+
+#logger
+log_to_file: 'false'

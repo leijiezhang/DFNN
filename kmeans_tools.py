@@ -19,12 +19,12 @@ class KmeansUtils(object):
 
         errors = []
         # initiate lagrange multiplier
-        lagrange_mul = torch.zeros(n_agents, n_rules, data[1].X.shape[1])
+        lagrange_mul = torch.zeros(n_agents, n_rules, data[1].X.shape[1]).double()
         # initiate global term centrio mu
         rules.fit(data[1].X, n_rules)
         center_global = rules.center_list
         # initiate global center set
-        center_agent_set = torch.zeros((n_agents, center_global.shape[0], center_global.shape[1]))
+        center_agent_set = torch.zeros((n_agents, center_global.shape[0], center_global.shape[1])).double()
 
         for i in torch.arange(max_steps):
 
@@ -36,15 +36,6 @@ class KmeansUtils(object):
                 rules.update_rules(data[int(j)].X, center_global)
 
                 center_agent_set[j, :, :] = rules.update_center(data[int(j)].X)
-                # labels = rules.x_center_idx
-                # for k in torch.arange(n_rules):
-                #     label_ids = torch.where(labels == k)
-                #     # if no sample is related to this center
-                #     if not label_ids[0].shape[0] == 0:
-                #         smpl_k = data[int(j)].X[label_ids[0], :]
-                #         center_agent_set[j, k, :] = smpl_k.mean(0)
-                #     else:
-                #         center_agent_set[j, k, :] = center_global[k, :]
 
             # store the old global centrio and update
             center_global_old = center_global.clone()

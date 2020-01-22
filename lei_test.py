@@ -1,10 +1,17 @@
-from utils import Logger
+from fcm import FCM
+import torch
+import csv
+import scipy.io as sio
+from utils import dataset_parse
 
 
-log = Logger()
-log.debug(f"Navigate your code with ease. Click on function and method calls to!")
-log.info(f"Navigate your code with ease. Click on function and method calls to!")
-log.war(f"Navigate your code with ease. Click on function and method calls to!")
-log.error(f"Navigate your code with ease. Click on function and method calls to!")
-log.cri(f"Navigate your code with ease. Click on function and method calls to!")
+data_list = ['HRSS_anomalous_optimized']
+
+for i in torch.arange(len(data_list)):
+    dataset_parse(data_list[i])
+seperator = []
+sub_set1 = torch.linspace(0, 2, 1)
+
+
+
 print('lei')
