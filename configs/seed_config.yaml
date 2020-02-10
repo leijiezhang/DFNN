@@ -6,7 +6,7 @@ n_kfolds: 3
 n_agents: 5
 n_agents_list: []
 
-n_rules: 10
+n_rules: 3
 n_rules_list: []
 
 dataset_list:
