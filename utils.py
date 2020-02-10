@@ -33,6 +33,61 @@ def load_data(dataset_str):
     return dataset
 
 
+def load_eeg_data(dataset_str, sub_fold):
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_str}.pt"
+
+    load_data = torch.load(dir_dataset)
+
+    dataset_name = load_data['name']
+    x_train: torch.Tensor = load_data['x_train']
+    y_train: torch.Tensor = load_data['y_train']
+
+    x_test: torch.Tensor = load_data['x_test']
+    y_test: torch.Tensor = load_data['y_test']
+
+    task = load_data['task']
+
+    # normalize dataset
+    x = torch.cat((x_train, x_test), 0)
+    y = torch.cat((y_train, y_test), 0)
+
+    dataset = Dataset(dataset_name, x, y, task)
+    dataset.normalize(-1, 1)
+    n_train = x_train.shape[0]
+    n_test = x_test.shape[0]
+    x = dataset.X
+    x_train = x[0:n_train, :]
+    x_test = x[n_train:n_train+n_test, :]
+
+    if len(y_train.shape) == 1:
+        y_train = y_train.unsqueeze(1)
+
+    train_dataset = Dataset(dataset_name, x_train, y_train, task)
+
+    if 'y_train_r' in load_data:
+        y_r: torch.Tensor = load_data['y_train_r']
+        train_dataset.Y_r = y_r
+
+    if 'seperator' in load_data:
+        seperator = load_data['seperator']
+        train_dataset.seperator = seperator
+    # test dataset
+    if len(y_test.shape) == 1:
+        y_test = y_test.unsqueeze(1)
+
+    test_dataset = Dataset(dataset_name, x_test, y_test, task)
+
+    if 'y_test_r' in load_data:
+        y_r: torch.Tensor = load_data['y_test_r']
+        test_dataset.Y_r = y_r
+
+    if 'seperator' in load_data:
+        seperator = load_data['seperator']
+        test_dataset.seperator = seperator
+
+    return train_dataset, test_dataset
+
+
 def dataset_parse(dataset_name):
     """
     todo: parse dataset from .mat to .pt
@@ -69,6 +124,141 @@ def dataset_parse(dataset_name):
         data_save['Y'] = y.unsqueeze(1)
 
     dir_dataset = f"./datasets/{dataset_name}.pt"
+    torch.save(data_save, dir_dataset)
+
+
+def eeg_dataset_parse(dataset_name, sub_fold):
+    """
+    todo: parse dataset from .mat to .pt
+    :param dataset_name:
+    :param sub_fold:
+    :return:
+    """
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_name}.mat"
+    load_data = sio.loadmat(dir_dataset)
+    dataset_name = load_data['name'][0]
+    x_train_orig = load_data['X_train']
+    y_train_orig = load_data['Y_train']
+    x_test_orig = load_data['X_test']
+    y_test_orig = load_data['Y_test']
+    x_train = torch.tensor(x_train_orig).double()
+    x_test = torch.tensor(x_test_orig).double()
+
+    y_tmp = []
+    for i in torch.arange(len(y_train_orig)):
+        y_tmp.append(float(y_train_orig[i]))
+    y_train = torch.tensor(y_tmp).double()
+    y_tmp = []
+    for i in torch.arange(len(y_test_orig)):
+        y_tmp.append(float(y_test_orig[i]))
+    y_test = torch.tensor(y_tmp).double()
+
+    task = load_data['task'][0]
+    data_save = dict()
+    data_save['task'] = task
+    data_save['name'] = dataset_name
+
+    data_save['x_train'] = x_train
+    data_save['x_test'] = x_test
+
+    if task == 'C':
+        y_min = torch.min(y_test)
+        y_gap = y_min - 0
+        y = y_test - y_gap
+        y_unique = torch.unique(y)
+        y_c = torch.zeros(y.shape[0], y_unique.shape[0])
+        for i in torch.arange(y_c.shape[1]):
+            y_idx = torch.where(y == y_unique[i])
+            y_c[y_idx[0], i] = 1
+        data_save['y_test_r'] = y_c
+        data_save['y_test'] = y
+    else:
+        data_save['y_test'] = y_test.unsqueeze(1)
+
+    if task == 'C':
+        y_min = torch.min(y_train)
+        y_gap = y_min - 0
+        y = y_train - y_gap
+        y_unique = torch.unique(y)
+        y_c = torch.zeros(y.shape[0], y_unique.shape[0])
+        for i in torch.arange(y_c.shape[1]):
+            y_idx = torch.where(y == y_unique[i])
+            y_c[y_idx[0], i] = 1
+        data_save['y_train_r'] = y_c
+        data_save['y_train'] = y
+    else:
+        data_save['y_train'] = y_train.unsqueeze(1)
+
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_name}.pt"
+    torch.save(data_save, dir_dataset)
+
+
+def seed_dataset_parse(n_channel, idx_exp, idx_subj):
+    """
+    todo: parse dataset from .mat to .pt
+    :param idx_exp:
+    :param n_channel: channel number
+    :param idx_subj: experiment indices
+    :return:
+    """
+    dataset_name = f"seed_subj{idx_subj}"
+    dir_dataset = f"./datasets/seed/channel{n_channel}/experiment{idx_exp}/{dataset_name}.mat"
+    dataset_name = f"seed_c{n_channel}_e{idx_exp}_subj{idx_subj}"
+
+    load_data = sio.loadmat(dir_dataset)
+    x_train_orig = load_data['X_train']
+    y_train_orig = load_data['Y_train']
+    x_test_orig = load_data['X_test']
+    y_test_orig = load_data['Y_test']
+    x_train = torch.tensor(x_train_orig).double()
+    x_test = torch.tensor(x_test_orig).double()
+
+    y_tmp = []
+    for i in torch.arange(len(y_train_orig)):
+        y_tmp.append(float(y_train_orig[i]))
+    y_train = torch.tensor(y_tmp).double()
+    y_tmp = []
+    for i in torch.arange(len(y_test_orig)):
+        y_tmp.append(float(y_test_orig[i]))
+    y_test = torch.tensor(y_tmp).double()
+
+    task = load_data['task'][0]
+    data_save = dict()
+    data_save['task'] = task
+    data_save['name'] = dataset_name
+
+    data_save['x_train'] = x_train
+    data_save['x_test'] = x_test
+
+    if task == 'C':
+        y_min = torch.min(y_test)
+        y_gap = y_min - 0
+        y = y_test - y_gap
+        y_unique = torch.unique(y)
+        y_c = torch.zeros(y.shape[0], y_unique.shape[0])
+        for i in torch.arange(y_c.shape[1]):
+            y_idx = torch.where(y == y_unique[i])
+            y_c[y_idx[0], i] = 1
+        data_save['y_test_r'] = y_c
+        data_save['y_test'] = y
+    else:
+        data_save['y_test'] = y_test.unsqueeze(1)
+
+    if task == 'C':
+        y_min = torch.min(y_train)
+        y_gap = y_min - 0
+        y = y_train - y_gap
+        y_unique = torch.unique(y)
+        y_c = torch.zeros(y.shape[0], y_unique.shape[0])
+        for i in torch.arange(y_c.shape[1]):
+            y_idx = torch.where(y == y_unique[i])
+            y_c[y_idx[0], i] = 1
+        data_save['y_train_r'] = y_c
+        data_save['y_train'] = y
+    else:
+        data_save['y_train'] = y_train.unsqueeze(1)
+
+    dir_dataset = f"./datasets/seed/channel{n_channel}/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)
 
 

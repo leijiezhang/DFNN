@@ -6,7 +6,7 @@ from loss_utils import LossFunc, NRMSELoss, RMSELoss, MSELoss, Map, LikelyLoss
 from utils import Logger
 from neuron import Neuron
 from seperator import FeaSeperator
-from model import NetBase, TreeNet, TreeFNNet
+from model import NetBase, TreeNet, TreeFNNet, TreeDeepNet
 import yaml
 
 
@@ -42,22 +42,20 @@ class ParamConfig(object):
 
         # set feature seperator
         self.fea_seperator: FeaSeperator = None
-        self.seperator_type = None
-        self.window_size = 0
-        self.n_level = 0
-        # for random pick
-        self.n_repeat = 0
-        # for slide window
-        self.step = 0
 
         # initiate net
         self.net: NetBase = None
         self.log = None
 
+        # config content
+        self.config_content = None
+
     def config_parse(self, config_name):
         config_dir = f"./configs/{config_name}.yaml"
         config_file = open(config_dir)
         config_content = yaml.load(config_file, Loader=yaml.FullLoader)
+        self.config_content = config_content
+
         self.n_run = config_content['n_run']
         self.n_kfolds = config_content['n_kfolds']
 
@@ -115,17 +113,6 @@ class ParamConfig(object):
         if config_content['rules'] == 'kmeans':
             self.patition_strategy = KFoldPartition(self.n_kfolds)
 
-        # set feature seperator
-        self.seperator_type = config_content['feature_seperator']
-        if config_content['feature_seperator'] == 'slice_window':
-            self.window_size = config_content['window_size']
-            self.step = config_content['step']
-            self.n_level = config_content['n_level']
-        elif config_content['feature_seperator'] == 'random_pick':
-            self.window_size = config_content['window_size']
-            self.n_repeat = config_content['n_repeat_select']
-            self.n_level = config_content['n_level']
-
         # set logger to decide whether write log into files
         if config_content['log_to_file'] == 'false':
             self.log = Logger()
@@ -140,15 +127,38 @@ class ParamConfig(object):
             self.net = TreeFNNet(neuron)
         elif config_content['model'] == 'fuzzy_tree':
             self.net = TreeNet(neuron)
+        elif config_content['model'] == 'fuzzy_tree_dnn':
+            self.net = TreeDeepNet(neuron)
 
-    def update_seperator(self, data_name):
+    def get_cur_dataset(self, dataset_idx):
+        dataset_name = self.dataset_list[dataset_idx]
+        config_content = self.config_content
+
+        fea_seperator = FeaSeperator(dataset_name)
         # set feature seperator
-        self.fea_seperator = FeaSeperator(data_name)
-        if self.seperator_type == 'slice_window':
-            self.fea_seperator.set_seperator_by_slice_window(self.window_size, self.step,
-                                                             self.n_level)
-        elif self.seperator_type == 'random_pick':
-            self.fea_seperator.set_seperator_by_random_pick(self.window_size, self.n_repeat,
-                                                            self.n_level)
-        elif self.seperator_type == 'no_seperate':
-            self.fea_seperator.set_seperator_by_no_seperate()
+        seperator_type = config_content['feature_seperator']
+        if seperator_type == 'slice_window':
+            window_size = config_content['window_size']
+            step = config_content['step']
+            n_level = config_content['n_level']
+            fea_seperator.set_seperator_by_slice_window(window_size, step,
+                                                        n_level)
+        elif seperator_type == 'random_pick':
+            window_size = config_content['window_size']
+            n_repeat = config_content['n_repeat_select']
+            n_level = config_content['n_level']
+            fea_seperator.set_seperator_by_random_pick(window_size, n_repeat,
+                                                       n_level)
+        elif seperator_type == 'no_seperate':
+            fea_seperator.set_seperator_by_no_seperate()
+
+        # generate tree of rule numbers according to the seperator
+        fea_seperator.generate_n_rule_tree(self.n_rules)
+        # set rule number
+        tree_rule_spesify = config_content['tree_rule_spesify']
+        if tree_rule_spesify == 'true':
+            n_rule_pos = config_content['n_rule_pos']
+            n_rule_spesify = config_content['n_rule_spesify']
+            fea_seperator.set_n_rule_tree(n_rule_pos[0], n_rule_pos[1], n_rule_spesify)
+        self.fea_seperator = fea_seperator
+        return dataset_name

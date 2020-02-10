@@ -10,22 +10,50 @@ class FeaSeperator(object):
     def __init__(self, data_name):
         self.data_name = data_name
         self.__seperator = [[]]
+        # the structure for rule numbers coresponse to the seperator, each node should have
+        # a rule number
+        self.__n_rule_tree = [[]]
 
     def set_seperator_by_slice_window(self, window_size, step=1, n_level=2):
         """set seperator using slice window"""
-        seperator = []
+        n_fea = 18
         if self.data_name.find('HRSS') != -1:
             n_fea = 18
-            seperator = slide_window(n_fea, window_size, step, n_level)
+        elif self.data_name.find('seed_c62') != -1:
+            n_fea = 31
+        elif self.data_name.find('seed_c12') != -1:
+            n_fea = 60
+        elif self.data_name.find('seed_c9') != -1:
+            n_fea = 45
+        elif self.data_name.find('seed_c6') != -1:
+            n_fea = 30
+        elif self.data_name.find('seed_c4') != -1:
+            n_fea = 20
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 24
 
+        seperator = slide_window(n_fea, window_size, step, n_level)
         self.__seperator = seperator
 
     def set_seperator_by_random_pick(self, window_size, n_repeat=2, n_level=2):
         """set seperator using slice window"""
-        seperator = []
+        n_fea = 18
         if self.data_name.find('HRSS') != -1:
             n_fea = 18
-            seperator = random_pick(n_fea, window_size, n_repeat, n_level)
+        elif self.data_name.find('seed_c62') != -1:
+            n_fea = 31
+        elif self.data_name.find('seed_c12') != -1:
+            n_fea = 60
+        elif self.data_name.find('seed_c9') != -1:
+            n_fea = 45
+        elif self.data_name.find('seed_c6') != -1:
+            n_fea = 30
+        elif self.data_name.find('seed_c4') != -1:
+            n_fea = 20
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 24
+
+        seperator = random_pick(n_fea, window_size, n_repeat, n_level)
 
         self.__seperator = seperator
 
@@ -33,6 +61,46 @@ class FeaSeperator(object):
         """do not seperate features"""
         seperator = [[]]
         self.__seperator = seperator
+
+    def generate_n_rule_tree(self, n_rule_general):
+        """
+        generate tree of rule numbers according to the seperator structure
+        :param n_rule_general: general rule number for all fnn neurons
+        :return:
+        """
+        n_rule_tree = []
+        seperator = self.get_seperator()
+        for i in torch.arange(len(seperator)):
+            len_seperator_sub = len(seperator[int(i)])
+            if len_seperator_sub == 0:
+                len_seperator_sub = 1
+            n_rule_brunch = n_rule_general * torch.ones(len_seperator_sub)
+            n_rule_tree.append(n_rule_brunch)
+        self.__n_rule_tree = n_rule_tree
+
+    def set_n_rule_tree(self, row_idx, column_idx, n_rule):
+        """
+        set n_rule in n_rule_tree by specify row index and column index velue
+        (1, 1) is the start position, o denotes the whole index or column
+        :param row_idx:
+        :param column_idx:
+        :param n_rule:
+        :return:
+        """
+        n_rule_tree = self.get_n_rule_tree()
+        if row_idx == 0:
+            for i in torch.arange(len(n_rule_tree)):
+                n_rule_brunch = n_rule * torch.ones(len(n_rule_tree[int(i)]))
+                n_rule_tree[int(i)] = n_rule_brunch
+        elif column_idx == 0:
+            n_rule_brunch = n_rule * torch.ones(len(n_rule_tree[int(row_idx - 1)]))
+            n_rule_tree[int(row_idx - 1)] = n_rule_brunch
+        else:
+            n_rule_tree[int(row_idx - 1)][int(column_idx - 1)] = n_rule
+        self.__n_rule_tree = n_rule_tree
+
+    def get_n_rule_tree(self):
+        return self.__n_rule_tree
 
     def get_seperator(self):
         return self.__seperator

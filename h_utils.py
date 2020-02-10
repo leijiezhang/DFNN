@@ -39,7 +39,7 @@ class HNormal(HBase):
             x_extra = torch.cat((torch.ones(n_smpl, 1).double(), x), 1)
             h_per_rule = torch.mul(w_hat_per_rule, x_extra).unsqueeze(0)
             h = torch.cat((h, h_per_rule), 0)
-        return h
+        return h, w_hat.t()
 
 
 class HFuzzy(HBase):

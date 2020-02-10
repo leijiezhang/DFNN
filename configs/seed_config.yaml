@@ -1,16 +1,24 @@
 model: 'fuzzy_tree_fn' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
 
 n_run: 1
-n_kfolds: 10
+n_kfolds: 3
 
 n_agents: 5
 n_agents_list: []
 
-n_rules: 12
+n_rules: 10
 n_rules_list: []
 
 dataset_list:
-  ['HRSS_anomalous_optimized']
+  ['seed_c12_e1_subj1', 'seed_c12_e1_subj2', 'seed_c12_e1_subj3', 'seed_c12_e1_subj4', 'seed_c12_e1_subj5',
+  'seed_c12_e1_subj6', 'seed_c12_e1_subj7', 'seed_c12_e1_subj8', 'seed_c12_e1_subj9', 'seed_c12_e1_subj10',
+  'seed_c12_e1_subj11', 'seed_c12_e1_subj12', 'seed_c12_e1_subj13', 'seed_c12_e1_subj14', 'seed_c12_e1_subj15',
+   'seed_c12_e2_subj1', 'seed_c12_e2_subj2', 'seed_c12_e2_subj3', 'seed_c12_e2_subj4', 'seed_c12_e2_subj5',
+   'seed_c12_e2_subj6', 'seed_c12_e2_subj7', 'seed_c12_e2_subj8', 'seed_c12_e2_subj9', 'seed_c12_e2_subj10',
+   'seed_c12_e2_subj11', 'seed_c12_e2_subj12', 'seed_c12_e2_subj13', 'seed_c12_e2_subj14', 'seed_c12_e2_subj15',
+   'seed_c12_e3_subj1', 'seed_c12_e3_subj2', 'seed_c12_e3_subj3', 'seed_c12_e3_subj4', 'seed_c12_e3_subj5',
+   'seed_c12_e3_subj6', 'seed_c12_e3_subj7', 'seed_c12_e3_subj8', 'seed_c12_e3_subj9', 'seed_c12_e3_subj10',
+   'seed_c12_e3_subj11', 'seed_c12_e3_subj12', 'seed_c12_e3_subj13', 'seed_c12_e3_subj14', 'seed_c12_e3_subj15']
 dataset_list_all:
   ['abalone', 'airfoil', 'bikesharing',
    'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',
@@ -33,10 +41,10 @@ patition_strategy: 'kmeans'
 
 #feature splitor
 feature_seperator: 'slice_window' # 'slice_window' 'random_pick' 'no_seperate'
-window_size: 3
+window_size: 5 # 5 bands
 n_level: 2
 # while feature_seperator is slice_window, initiate following parameters
-step: 3
+step: 5
 # while feature_seperator is random_pick, initiate following parameters
 n_repeat_select: 30
 

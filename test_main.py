@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import fuzzy_net_run, svm_local, mlp_run
+from dfnn_run import fuzzy_net_run, svm_local, mlp_run, neuron_run, dfnn_kfolds
 from dataset import Result
 from utils import load_data, Logger
 import torch
@@ -13,9 +13,10 @@ param_config = ParamConfig()
 param_config.config_parse('normal_config')
 
 for i in torch.arange(len(param_config.dataset_list)):
-    dataset_file = param_config.dataset_list[int(i)]
+    dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
     dataset = load_data(dataset_file)
+    train_data, test_data = dataset.get_run_set()
 
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
     param_config.log.debug(f"=====starting on {dataset.name}=======")
@@ -32,8 +33,14 @@ for i in torch.arange(len(param_config.dataset_list)):
 
     # loss_train_tsr, loss_test_tsr = svm_local(param_config, dataset)
 
+    # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+    #     neuron_run(param_config, dataset)
+
+    # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+    #     fuzzy_net_run(param_config, dataset)
+
     loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-        fuzzy_net_run(param_config, dataset)
+        dfnn_kfolds(param_config, dataset)
 
     # test_acc, train_losses = mlp_run(param_config, dataset)
 
