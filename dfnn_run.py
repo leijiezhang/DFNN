@@ -2,7 +2,7 @@ from param_config import ParamConfig
 from dataset import Dataset, DatasetNN
 from torch.utils.data import DataLoader
 from neuron import NeuronC, NeuronD, NeuronDC, NeuronDN
-from svmutil import *
+# from svmutil import *
 import torch.nn as nn
 from loss_utils import LossFunc
 import torch
@@ -216,73 +216,73 @@ def mlp_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
     return test_map, train_losses
 
 
-def svm_local(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
-    """
-    todo: this is the method for distribute fuzzy Neuron network
-    :param param_config:
-    :param train_data: training dataset
-    :param test_data: test dataset
-    :return:
-    """
-    # classifier = svm.SVC()
-    train_label = train_data.Y.squeeze().numpy()
-    test_label = test_data.Y.squeeze().numpy()
-    x = train_data.X.numpy()
-
-    print("training the one-class SVM")
-    prob_train = svm_problem(train_label, x)
-
-    param = svm_parameter('-s 0 -t 2 -d 4 -c 10')
-
-    model = svm_train(prob_train, param)
-
-    print("predicting the test data")
-
-    # classifier.fit(x, train_label)
-    # # trainning global method
-    # train_label_hat = classifier.predict(x)
-    test_x = test_data.X.numpy()
-    # test_label_hat = classifier.predict(test_x)
-
-    print("predicting")
-
-    test_label_hat, _, _ = svm_predict(test_label, test_x, model, '-b 0')
-    train_label_hat, _, _ = svm_predict(train_label, x, model, '-b 0')
-    loss_fun: LossFunc = param_config.loss_fun
-
-    train_acc = loss_fun.forward(train_data.Y.squeeze(), torch.tensor(train_label_hat))
-    test_acc = loss_fun.forward(test_data.Y.squeeze(), torch.tensor(test_label_hat))
-    if test_data.task == 'C':
-        param_config.log.info(f"Accuracy of training data using SVM: {train_acc}")
-        param_config.log.info(f"Accuracy of test data using SVM: {test_acc}")
-    else:
-        param_config.log.info(f"loss of training data using SVM: {train_acc}")
-        param_config.log.info(f"loss of test data using SVM: {test_acc}")
-
-    return train_acc, test_acc
-
-
-def svm_kfolds(param_config: ParamConfig, dataset: Dataset):
-    """
-    todo: this is the method for distribute fuzzy Neuron network
-    :param param_config:
-    :param dataset:  dataset
-    :return:
-    """
-    loss_c_train_tsr = []
-    loss_c_test_tsr = []
-    for k in torch.arange(param_config.n_kfolds):
-        param_config.patition_strategy.set_current_folds(k)
-        train_data, test_data = dataset.get_run_set()
-        param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
-        train_loss_c, test_loss_c = svm_local(param_config, train_data, test_data)
-
-        loss_c_train_tsr.append(train_loss_c)
-        loss_c_test_tsr.append(test_loss_c)
-
-    loss_c_train_tsr = torch.tensor(loss_c_train_tsr)
-    loss_c_test_tsr = torch.tensor(loss_c_test_tsr)
-    return loss_c_train_tsr, loss_c_test_tsr
+# def svm_local(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+#     """
+#     todo: this is the method for distribute fuzzy Neuron network
+#     :param param_config:
+#     :param train_data: training dataset
+#     :param test_data: test dataset
+#     :return:
+#     """
+#     # classifier = svm.SVC()
+#     train_label = train_data.Y.squeeze().numpy()
+#     test_label = test_data.Y.squeeze().numpy()
+#     x = train_data.X.numpy()
+#
+#     print("training the one-class SVM")
+#     prob_train = svm_problem(train_label, x)
+#
+#     param = svm_parameter('-s 0 -t 2 -d 4 -c 10')
+#
+#     model = svm_train(prob_train, param)
+#
+#     print("predicting the test data")
+#
+#     # classifier.fit(x, train_label)
+#     # # trainning global method
+#     # train_label_hat = classifier.predict(x)
+#     test_x = test_data.X.numpy()
+#     # test_label_hat = classifier.predict(test_x)
+#
+#     print("predicting")
+#
+#     test_label_hat, _, _ = svm_predict(test_label, test_x, model, '-b 0')
+#     train_label_hat, _, _ = svm_predict(train_label, x, model, '-b 0')
+#     loss_fun: LossFunc = param_config.loss_fun
+#
+#     train_acc = loss_fun.forward(train_data.Y.squeeze(), torch.tensor(train_label_hat))
+#     test_acc = loss_fun.forward(test_data.Y.squeeze(), torch.tensor(test_label_hat))
+#     if test_data.task == 'C':
+#         param_config.log.info(f"Accuracy of training data using SVM: {train_acc}")
+#         param_config.log.info(f"Accuracy of test data using SVM: {test_acc}")
+#     else:
+#         param_config.log.info(f"loss of training data using SVM: {train_acc}")
+#         param_config.log.info(f"loss of test data using SVM: {test_acc}")
+#
+#     return train_acc, test_acc
+#
+#
+# def svm_kfolds(param_config: ParamConfig, dataset: Dataset):
+#     """
+#     todo: this is the method for distribute fuzzy Neuron network
+#     :param param_config:
+#     :param dataset:  dataset
+#     :return:
+#     """
+#     loss_c_train_tsr = []
+#     loss_c_test_tsr = []
+#     for k in torch.arange(param_config.n_kfolds):
+#         param_config.patition_strategy.set_current_folds(k)
+#         train_data, test_data = dataset.get_run_set()
+#         param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
+#         train_loss_c, test_loss_c = svm_local(param_config, train_data, test_data)
+#
+#         loss_c_train_tsr.append(train_loss_c)
+#         loss_c_test_tsr.append(test_loss_c)
+#
+#     loss_c_train_tsr = torch.tensor(loss_c_train_tsr)
+#     loss_c_test_tsr = torch.tensor(loss_c_test_tsr)
+#     return loss_c_train_tsr, loss_c_test_tsr
 
 
 def dfnn_kfolds(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
