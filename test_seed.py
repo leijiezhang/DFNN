@@ -3,7 +3,6 @@ from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import fuzzy_net_run, mlp_run, neuron_run, dfnn_kfolds
 from utils import load_data, load_eeg_data
 import torch
-import os
 
 
 # Dataset configuration

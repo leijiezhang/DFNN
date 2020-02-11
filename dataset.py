@@ -1,6 +1,7 @@
 import torch
 from typing import List
 from torch.utils.data import Dataset as Dataset_nn
+from math_utils import mapminmax
 
 
 class Dataset(object):
@@ -30,23 +31,10 @@ class Dataset(object):
         self.partitions = []
         self.__current_partition = 0
 
-    @staticmethod
-    def mapminmax(x: torch.Tensor, l_range=-1, u_range=1):
-        xmax = torch.max(x, 0)[0].unsqueeze(0)
-        xmin = torch.min(x, 0)[0].unsqueeze(0)
-        xmin = xmin.repeat(x.shape[0], 1)
-        xmax = xmax.repeat(x.shape[0], 1)
-
-        if (xmax == xmin).any():
-            raise ValueError("some rows have no variation")
-        x_proj = ((u_range - l_range) * (x - xmin) / (xmax - xmin)) + l_range
-
-        return x_proj
-
     def normalize(self, l_range: torch.int, u_range: int, flag=None):
-        self.X = self.mapminmax(self.X, l_range, u_range)
+        self.X = mapminmax(self.X, l_range, u_range)
         if flag is not None:
-            d = torch.sum(self.X, 1)
+            d: torch.Tensor = torch.sum(self.X, 1)
             d = d.repeat(1, self.X.shape[1])
             self.X = self.X / d
 

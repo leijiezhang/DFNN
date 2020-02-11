@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import fuzzy_net_run, svm_local, mlp_run, neuron_run, dfnn_kfolds, svm_kfolds
+from dfnn_run import fuzzy_net_run, mlp_run, neuron_run, dfnn_kfolds
 from dataset import Result
 from utils import load_data, Logger
 import torch
@@ -30,9 +30,9 @@ for i in torch.arange(len(param_config.dataset_list)):
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \
     #     dfnn_ite_rules_mu(15, param_config, dataset)
 
-    loss_c_train, loss_c_test = svm_kfolds(param_config, dataset)
-    loss_d_train = torch.tensor([0.0, 0.0])
-    loss_d_test = torch.tensor([0.0, 0.0])
+    # loss_c_train, loss_c_test = svm_kfolds(param_config, dataset)
+    # loss_d_train = torch.tensor([0.0, 0.0])
+    # loss_d_test = torch.tensor([0.0, 0.0])
 
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
     #     neuron_run(param_config, dataset)
@@ -40,8 +40,8 @@ for i in torch.arange(len(param_config.dataset_list)):
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
     #     fuzzy_net_run(param_config, dataset)
 
-    # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-    #     dfnn_kfolds(param_config, dataset)
+    loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+        dfnn_kfolds(param_config, dataset)
 
     # test_acc, train_losses = mlp_run(param_config, dataset)
 

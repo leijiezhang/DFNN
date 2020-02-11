@@ -285,12 +285,11 @@ def mlp_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
 #     return loss_c_train_tsr, loss_c_test_tsr
 
 
-def dfnn_kfolds(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+def dfnn_kfolds(param_config: ParamConfig, dataset: Dataset):
     """
     todo: this is the method for distribute fuzzy Neuron network
     :param param_config:
-    :param train_data: dataset
-    :param test_data: dataset
+    :param dataset: dataset
     :return:
     """
     loss_c_train_tsr = []
@@ -299,6 +298,7 @@ def dfnn_kfolds(param_config: ParamConfig, train_data: Dataset, test_data: Datas
     loss_d_test_tsr = []
     for k in torch.arange(param_config.n_kfolds):
         param_config.patition_strategy.set_current_folds(k)
+        train_data, test_data = dataset.get_run_set()
         param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
         train_loss_c, test_loss_c, cfnn_train_loss, cfnn_test_loss = \
             fuzzy_net_run(param_config, train_data, test_data)
@@ -316,13 +316,12 @@ def dfnn_kfolds(param_config: ParamConfig, train_data: Dataset, test_data: Datas
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
 
-def dfnn_ite_rules_kfolds(max_rules, param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+def dfnn_ite_rules_kfolds(max_rules, param_config: ParamConfig, dataset: Dataset):
     """
     todo: this method is to calculate different rule numbers on distribute fuzzy Neuron network iterately
     :param max_rules:
     :param param_config:
-    :param train_data: dataset
-    :param test_data: dataset
+    :param dataset: dataset
     :return:
     """
     loss_c_train_tsr = torch.empty(0, param_config.n_kfolds).double()
@@ -336,7 +335,7 @@ def dfnn_ite_rules_kfolds(max_rules, param_config: ParamConfig, train_data: Data
         param_config.n_rules = n_rules
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-            dfnn_kfolds(param_config, train_data, test_data)
+            dfnn_kfolds(param_config, dataset)
 
         loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
         loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
@@ -346,13 +345,12 @@ def dfnn_ite_rules_kfolds(max_rules, param_config: ParamConfig, train_data: Data
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
 
-def dfnn_ite_rules_mu_kfolds(max_rules, param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+def dfnn_ite_rules_mu_kfolds(max_rules, param_config: ParamConfig, dataset: Dataset):
     """
     todo: consider all parameters in para_mu_list into algorithm
     :param max_rules:
     :param param_config:
-    :param train_data: training dataset
-    :param test_data: test dataset
+    :param dataset: training dataset
     :return:
     """
     loss_c_train_mu_tsr = torch.empty(0, max_rules, param_config.n_kfolds).double()
@@ -365,7 +363,7 @@ def dfnn_ite_rules_mu_kfolds(max_rules, param_config: ParamConfig, train_data: D
         param_config.log.info(f"running param mu: {param_config.para_mu_current}")
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-            dfnn_ite_rules_kfolds(max_rules, param_config, train_data, test_data)
+            dfnn_ite_rules_kfolds(max_rules, param_config, dataset)
         loss_c_train_mu_tsr = torch.cat((loss_c_train_mu_tsr, loss_c_train.unsqueeze(0).double()), 0)
         loss_c_test_mu_tsr = torch.cat((loss_c_test_mu_tsr, loss_c_test.unsqueeze(0).double()), 0)
         loss_d_train_mu_tsr = torch.cat((loss_d_train_mu_tsr, loss_d_train.unsqueeze(0).double()), 0)
