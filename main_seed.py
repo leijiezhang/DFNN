@@ -81,7 +81,7 @@ for jj in torch.arange(len(n_channel_list)):
             param_config.loss_fun = RMSELoss()
 
         acc_c_train_tsr, acc_c_test_tsr, acc_d_train_tsr, acc_d_test_tsr = \
-            dfnn_ite_rules_mu(15, param_config, train_data, test_data)
+            dfnn_ite_rules_mu(5, param_config, train_data, test_data)
 
         # save all the output
         acc_c_train_list.append(acc_c_train_tsr)
