@@ -316,6 +316,64 @@ def dfnn_kfolds(param_config: ParamConfig, dataset: Dataset):
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
 
+def eeg_dfnn_kfolds(param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: this is the method for trial based eeg signal dataset using kfolds validate
+    :param param_config:
+    :param dataset: dataset
+    :return:
+    """
+    loss_c_train_tsr = []
+    loss_c_test_tsr = []
+    loss_d_train_tsr = []
+    loss_d_test_tsr = []
+
+    n_fea = 24
+    for k in torch.arange(param_config.n_kfolds):
+        param_config.patition_strategy.set_current_folds(k)
+        train_data, test_data = dataset.get_run_set()
+
+        train_x = train_data.X
+        train_x = train_x.view(train_x.shape[0], n_fea, -1).t()
+        n_trial = train_x.shape[2]
+        train_x = train_x.permute(0, 2, 1)
+        train_x = train_x.view(-1, n_fea)
+
+        train_y = train_data.Y
+        train_y = train_y.repeat(1, n_trial)
+        train_y = train_y.view(-1)
+        train_data.X = train_x
+        train_data.Y = train_y
+
+        test_x = test_data.X
+        test_x = test_x.view(test_x.shape[0], n_fea, -1).t()
+        n_trial = test_x.shape[2]
+        test_x = test_x.permute(0, 2, 1)
+        test_x = test_x.view(-1, n_fea)
+
+        test_y = test_data.Y
+        test_y = test_y.repeat(1, n_trial)
+        test_y = test_y.view(-1)
+        test_data.X = test_x
+        test_data.Y = test_y
+
+        param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
+        train_loss_c, test_loss_c, cfnn_train_loss, cfnn_test_loss = \
+            fuzzy_net_run(param_config, train_data, test_data)
+
+        loss_c_train_tsr.append(train_loss_c)
+        loss_c_test_tsr.append(test_loss_c)
+
+        loss_d_train_tsr.append(cfnn_train_loss)
+        loss_d_test_tsr.append(cfnn_test_loss)
+
+    loss_c_train_tsr = torch.tensor(loss_c_train_tsr)
+    loss_c_test_tsr = torch.tensor(loss_c_test_tsr)
+    loss_d_train_tsr = torch.tensor(loss_d_train_tsr)
+    loss_d_test_tsr = torch.tensor(loss_d_test_tsr)
+    return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
+
+
 def dfnn_ite_rules_kfolds(max_rules, param_config: ParamConfig, dataset: Dataset):
     """
     todo: this method is to calculate different rule numbers on distribute fuzzy Neuron network iterately

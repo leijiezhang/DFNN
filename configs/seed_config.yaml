@@ -3,10 +3,10 @@ model: 'fuzzy_tree' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
 n_run: 1
 n_kfolds: 3
 
-n_agents: 2
+n_agents: 5
 n_agents_list: []
 
-n_rules: 2
+n_rules: 1
 n_rules_list: []
 
 dataset_list:
