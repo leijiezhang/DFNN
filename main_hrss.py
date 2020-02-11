@@ -60,6 +60,11 @@ for i in torch.arange(len(param_config.dataset_list)):
     acc_d_train_best = loss_d_train_mean_mtrx[pos_best[0][0], pos_best[1][0]]
     acc_d_test_best = loss_d_test_mean_mtrx[pos_best[0][0], pos_best[1][0]]
 
+    acc_c_train_arr.append(acc_c_train_best)
+    acc_c_test_arr.append(acc_c_test_best)
+    acc_d_train_arr.append(acc_d_train_best)
+    acc_d_test_arr.append(acc_d_test_best)
+
 acc_c_train = torch.tensor(acc_c_train_arr).mean()
 acc_c_test = torch.tensor(acc_c_test_arr).mean()
 acc_d_train = torch.tensor(acc_d_train_arr).mean()
@@ -92,5 +97,5 @@ data_save_dir = f"./results/hrss/"
 
 if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}/dfnn.pt"
+data_save_file = f"{data_save_dir}/h_dfnn_s.pt"
 torch.save(dave_dict, data_save_file)

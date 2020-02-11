@@ -1,7 +1,7 @@
 model: 'fuzzy_tree' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
 
 n_run: 1
-n_kfolds: 3
+n_kfolds: 10
 
 n_agents: 5
 n_agents_list: []
@@ -32,7 +32,7 @@ rules: 'kmeans' # 'kmeans' 'fuzzyc'
 patition_strategy: 'kmeans'
 
 #feature splitor
-feature_seperator: 'no_seperate' # 'slice_window' 'random_pick' 'no_seperate'
+feature_seperator: 'slice_window' # 'slice_window' 'random_pick' 'no_seperate'
 window_size: 3
 n_level: 2
 # while feature_seperator is slice_window, initiate following parameters
@@ -41,7 +41,7 @@ step: 3
 n_repeat_select: 30
 
 # rule number tree
-tree_rule_spesify: 'false' # 'false' 'true'
+tree_rule_spesify: 'true' # 'false' 'true'
 n_rule_pos: [2, 0] # 0 stands for all, number(1...5) denotes for index
 n_rule_spesify: 1
 
