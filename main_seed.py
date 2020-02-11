@@ -12,7 +12,45 @@ n_channel_list = [4, 6, 9, 12]
 param_config = ParamConfig()
 param_config.config_parse('seed_config')
 
-para_mu_list = torch.linspace(-10, 0, 11)
+dataset_list_12= ['seed_c12_e1_subj1', 'seed_c12_e1_subj2', 'seed_c12_e1_subj3', 'seed_c12_e1_subj4', 'seed_c12_e1_subj5',
+  'seed_c12_e1_subj6', 'seed_c12_e1_subj7', 'seed_c12_e1_subj8', 'seed_c12_e1_subj9', 'seed_c12_e1_subj10',
+  'seed_c12_e1_subj11', 'seed_c12_e1_subj12', 'seed_c12_e1_subj13', 'seed_c12_e1_subj14', 'seed_c12_e1_subj15',
+   'seed_c12_e2_subj1', 'seed_c12_e2_subj2', 'seed_c12_e2_subj3', 'seed_c12_e2_subj4', 'seed_c12_e2_subj5',
+   'seed_c12_e2_subj6', 'seed_c12_e2_subj7', 'seed_c12_e2_subj8', 'seed_c12_e2_subj9', 'seed_c12_e2_subj10',
+   'seed_c12_e2_subj11', 'seed_c12_e2_subj12', 'seed_c12_e2_subj13', 'seed_c12_e2_subj14', 'seed_c12_e2_subj15',
+   'seed_c12_e3_subj1', 'seed_c12_e3_subj2', 'seed_c12_e3_subj3', 'seed_c12_e3_subj4', 'seed_c12_e3_subj5',
+   'seed_c12_e3_subj6', 'seed_c12_e3_subj7', 'seed_c12_e3_subj8', 'seed_c12_e3_subj9', 'seed_c12_e3_subj10',
+   'seed_c12_e3_subj11', 'seed_c12_e3_subj12', 'seed_c12_e3_subj13', 'seed_c12_e3_subj14', 'seed_c12_e3_subj15']
+dataset_list_9 = ['seed_c9_e1_subj1', 'seed_c9_e1_subj2', 'seed_c9_e1_subj3', 'seed_c9_e1_subj4', 'seed_c9_e1_subj5',
+  'seed_c9_e1_subj6', 'seed_c9_e1_subj7', 'seed_c9_e1_subj8', 'seed_c9_e1_subj9', 'seed_c9_e1_subj10',
+  'seed_c9_e1_subj11', 'seed_c9_e1_subj12', 'seed_c9_e1_subj13', 'seed_c9_e1_subj14', 'seed_c9_e1_subj15',
+   'seed_c9_e2_subj1', 'seed_c9_e2_subj2', 'seed_c9_e2_subj3', 'seed_c9_e2_subj4', 'seed_c9_e2_subj5',
+   'seed_c9_e2_subj6', 'seed_c9_e2_subj7', 'seed_c9_e2_subj8', 'seed_c9_e2_subj9', 'seed_c9_e2_subj10',
+   'seed_c9_e2_subj11', 'seed_c9_e2_subj12', 'seed_c9_e2_subj13', 'seed_c9_e2_subj14', 'seed_c9_e2_subj15',
+   'seed_c9_e3_subj1', 'seed_c9_e3_subj2', 'seed_c9_e3_subj3', 'seed_c9_e3_subj4', 'seed_c9_e3_subj5',
+   'seed_c9_e3_subj6', 'seed_c9_e3_subj7', 'seed_c9_e3_subj8', 'seed_c9_e3_subj9', 'seed_c9_e3_subj10',
+   'seed_c9_e3_subj11', 'seed_c9_e3_subj12', 'seed_c9_e3_subj13', 'seed_c9_e3_subj14', 'seed_c9_e3_subj15']
+dataset_list_6 = ['seed_c6_e1_subj1', 'seed_c6_e1_subj2', 'seed_c6_e1_subj3', 'seed_c6_e1_subj4', 'seed_c6_e1_subj5',
+  'seed_c6_e1_subj6', 'seed_c6_e1_subj7', 'seed_c6_e1_subj8', 'seed_c6_e1_subj9', 'seed_c6_e1_subj10',
+  'seed_c6_e1_subj11', 'seed_c6_e1_subj12', 'seed_c6_e1_subj13', 'seed_c6_e1_subj14', 'seed_c6_e1_subj15',
+   'seed_c6_e2_subj1', 'seed_c6_e2_subj2', 'seed_c6_e2_subj3', 'seed_c6_e2_subj4', 'seed_c6_e2_subj5',
+   'seed_c6_e2_subj6', 'seed_c6_e2_subj7', 'seed_c6_e2_subj8', 'seed_c6_e2_subj9', 'seed_c6_e2_subj10',
+   'seed_c6_e2_subj11', 'seed_c6_e2_subj12', 'seed_c6_e2_subj13', 'seed_c6_e2_subj14', 'seed_c6_e2_subj15',
+   'seed_c6_e3_subj1', 'seed_c6_e3_subj2', 'seed_c6_e3_subj3', 'seed_c6_e3_subj4', 'seed_c6_e3_subj5',
+   'seed_c6_e3_subj6', 'seed_c6_e3_subj7', 'seed_c6_e3_subj8', 'seed_c6_e3_subj9', 'seed_c6_e3_subj10',
+   'seed_c6_e3_subj11', 'seed_c6_e3_subj12', 'seed_c6_e3_subj13', 'seed_c6_e3_subj14', 'seed_c6_e3_subj15']
+dataset_list_4 = ['seed_c4_e1_subj1', 'seed_c4_e1_subj2', 'seed_c4_e1_subj3', 'seed_c4_e1_subj4', 'seed_c4_e1_subj5',
+  'seed_c4_e1_subj6', 'seed_c4_e1_subj7', 'seed_c4_e1_subj8', 'seed_c4_e1_subj9', 'seed_c4_e1_subj10',
+  'seed_c4_e1_subj11', 'seed_c4_e1_subj12', 'seed_c4_e1_subj13', 'seed_c4_e1_subj14', 'seed_c4_e1_subj15',
+   'seed_c4_e2_subj1', 'seed_c4_e2_subj2', 'seed_c4_e2_subj3', 'seed_c4_e2_subj4', 'seed_c4_e2_subj5',
+   'seed_c4_e2_subj6', 'seed_c4_e2_subj7', 'seed_c4_e2_subj8', 'seed_c4_e2_subj9', 'seed_c4_e2_subj10',
+   'seed_c4_e2_subj11', 'seed_c4_e2_subj12', 'seed_c4_e2_subj13', 'seed_c4_e2_subj14', 'seed_c4_e2_subj15',
+   'seed_c4_e3_subj1', 'seed_c4_e3_subj2', 'seed_c4_e3_subj3', 'seed_c4_e3_subj4', 'seed_c4_e3_subj5',
+   'seed_c4_e3_subj6', 'seed_c4_e3_subj7', 'seed_c4_e3_subj8', 'seed_c4_e3_subj9', 'seed_c4_e3_subj10',
+   'seed_c4_e3_subj11', 'seed_c4_e3_subj12', 'seed_c4_e3_subj13', 'seed_c4_e3_subj14', 'seed_c4_e3_subj15']
+dataset_list = [dataset_list_4, dataset_list_6, dataset_list_9, dataset_list_12]
+
+para_mu_list = torch.linspace(-10, 10, 21)
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 
 acc_c_train_arr = []
@@ -27,6 +65,7 @@ acc_d_test_list = []
 
 for jj in torch.arange(len(n_channel_list)):
     n_channel = n_channel_list[int(jj)]
+    param_config.dataset_list = dataset_list[jj]
     for i in torch.arange(len(param_config.dataset_list)):
         dataset_file = param_config.get_cur_dataset(int(i))
         # load dataset
@@ -52,11 +91,11 @@ for jj in torch.arange(len(n_channel_list)):
 
         # get the best performance
         acc_d_test_best = acc_d_test_tsr.max()
-        pos_best = torch.where(acc_d_test_best == acc_d_test_tsr)
-        acc_c_train_best = acc_c_train_tsr[pos_best[0], pos_best[0]]
-        acc_c_test_best = acc_c_test_tsr[pos_best[0], pos_best[0]]
-        acc_d_train_best = acc_d_train_tsr[pos_best[0], pos_best[0]]
-        acc_d_test_best = acc_d_test_tsr[pos_best[0], pos_best[0]]
+        pos_best = torch.where(acc_d_test_tsr == acc_d_test_best)
+        acc_c_train_best = acc_c_train_tsr[pos_best[0][0], pos_best[1][0]]
+        acc_c_test_best = acc_c_test_tsr[pos_best[0][0], pos_best[1][0]]
+        acc_d_train_best = acc_d_train_tsr[pos_best[0][0], pos_best[1][0]]
+        acc_d_test_best = acc_d_test_tsr[pos_best[0][0], pos_best[1][0]]
 
         acc_c_train_arr.append(acc_c_train_best)
         acc_c_test_arr.append(acc_c_test_best)

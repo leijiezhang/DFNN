@@ -394,7 +394,7 @@ def dfnn_ite_rules(max_rules, param_config: ParamConfig, train_data: Dataset, te
         param_config.n_rules = n_rules
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-            dfnn_kfolds(param_config, train_data, test_data)
+            fuzzy_net_run(param_config, train_data, test_data)
 
         loss_c_train_list.append(loss_c_train)
         loss_c_test_list.append(loss_c_test)
@@ -423,7 +423,7 @@ def dfnn_ite_rules_mu(max_rules, param_config: ParamConfig, train_data: Dataset,
         param_config.log.info(f"running param mu: {param_config.para_mu_current}")
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-            dfnn_ite_rules_kfolds(max_rules, param_config, train_data, test_data)
+            dfnn_ite_rules(max_rules, param_config, train_data, test_data)
         loss_c_train_mu_list.append(loss_c_train)
         loss_c_test_mu_list.append(loss_c_test)
         loss_d_train_mu_list.append(loss_d_train)
