@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import fuzzy_net_run, svm_local, mlp_run, neuron_run, dfnn_kfolds
+from dfnn_run import fuzzy_net_run, mlp_run, neuron_run, dfnn_kfolds
 from utils import load_data, load_eeg_data
 import torch
 import os
@@ -32,9 +32,9 @@ for i in torch.arange(len(param_config.dataset_list)):
     # acc_c_train, acc_c_test, acc_d_train, acc_d_test, acc_curve = \
     #     dfnn_ite_rules_mu(15, param_config, dataset)
 
-    acc_c_train, acc_c_test = svm_local(param_config, train_data, test_data)
-    acc_d_train = 0.0
-    acc_d_test = 0.0
+    # acc_c_train, acc_c_test = svm_local(param_config, train_data, test_data)
+    # acc_d_train = 0.0
+    # acc_d_test = 0.0
 
     # acc_c_train, acc_c_test, acc_d_train, acc_d_test = \
     #     neuron_run(param_config, dataset)
