@@ -246,6 +246,7 @@ class FnnAO(NetBase):
             seperator: FeaSeperator = kwargs['seperator']
 
         para_mu = kwargs['para_mu']
+        para_mu1 = kwargs['para_mu1']
 
         fea_seperator = seperator.get_seperator()
         n_rules_tree = seperator.get_n_rule_tree()
@@ -300,8 +301,6 @@ class FnnAO(NetBase):
         diff = 1
         loss = 100
         run_th = 0.0001
-        mu_1 = 0.1
-        mu_2 = 0.1
         while diff > run_th:
             # fix  w_y update w_x
             for i in torch.arange(n_branch):
@@ -309,7 +308,7 @@ class FnnAO(NetBase):
 
             w_x_h_cal = w_x_h.permute(1, 0, 2)
             w_x_h_cal = w_x_h_cal.reshape(n_smpl_tmp, -1)
-            w_x_optimal = torch.inverse(w_x_h_cal.t().mm(w_x_h_cal) + mu_1 * torch.eye(w_x_h_cal.shape[1]).double()) \
+            w_x_optimal = torch.inverse(w_x_h_cal.t().mm(w_x_h_cal) + para_mu * torch.eye(w_x_h_cal.shape[1]).double()) \
                 .mm(w_x_h_cal.t().mm(data.Y))
 
             w_x = w_x_optimal.reshape(n_branch, n_h)
@@ -318,7 +317,7 @@ class FnnAO(NetBase):
             for i in torch.arange(n_branch):
                 w_y_h[:, i] = h_all[i, :, :].mm(w_x[i, :].unsqueeze(1)).squeeze()
 
-            w_y = torch.inverse(w_y_h.t().mm(w_y_h) + mu_2 * torch.eye(w_y_h.shape[1]).double()) \
+            w_y = torch.inverse(w_y_h.t().mm(w_y_h) + para_mu1 * torch.eye(w_y_h.shape[1]).double()) \
                 .mm(w_y_h.t().mm(data.Y))
 
             # compute loss
@@ -329,7 +328,7 @@ class FnnAO(NetBase):
             loss_tmp = log_loss(y_tmp, y_hap_tmp)
             diff = abs(loss_tmp - loss)
             loss = loss_tmp
-            print(f"Loss of AO: {loss}")
+            # print(f"Loss of AO: {loss}")
 
         self.__w_x = w_x
 

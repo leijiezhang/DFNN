@@ -30,6 +30,8 @@ class ParamConfig(object):
         # set mu
         self.para_mu_current = 0
         self.para_mu_list = []
+        self.para_mu_current = 0
+        self.para_mu_list = []
         # set rho
         self.para_rho = 1
 
@@ -70,6 +72,8 @@ class ParamConfig(object):
 
         self.para_mu_current = config_content['mu_current']
         self.para_mu_list = config_content['mu_list']
+        self.para_mu1_current = config_content['mu1_current']
+        self.para_mu1_list = config_content['mu1_list']
 
         self.para_rho = config_content['rho']
 

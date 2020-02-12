@@ -96,5 +96,5 @@ data_save_dir = f"./results/eeg_dual/"
 
 if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}/h_dfnn_s.pt"
+data_save_file = f"{data_save_dir}/h_dfnn_fc.pt"
 torch.save(dave_dict, data_save_file)
