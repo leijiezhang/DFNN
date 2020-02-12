@@ -579,25 +579,58 @@ def dfnn_kfolds_ao(param_config: ParamConfig, dataset: Dataset):
     loss_d_train_tsr = torch.tensor(loss_d_train_tsr)
     loss_d_test_tsr = torch.tensor(loss_d_test_tsr)
 
-    if test_data.task == 'C':
+    if dataset.task == 'C':
         param_config.log.war(f"Mean Accuracy of training data on centralized method:"
-                              f" {loss_c_train_tsr.mean()}")
+                             f" {loss_c_train_tsr.mean()}")
         param_config.log.war(f"Mean Accuracy  of test data on centralized method: "
-                              f"{loss_c_test_tsr.mean()}")
+                             f"{loss_c_test_tsr.mean()}")
         param_config.log.war(f"Mean Accuracy  of training data on distributed method:"
-                              f" {loss_d_train_tsr.mean()}")
+                             f" {loss_d_train_tsr.mean()}")
         param_config.log.war(f"Mean Accuracy  of test data on distributed method: "
-                              f"{loss_d_test_tsr.mean()}")
+                             f"{loss_d_test_tsr.mean()}")
     else:
         param_config.log.war(f"loss of training data on centralized method: "
-                              f"{loss_c_train_tsr.mean()}")
+                             f"{loss_c_train_tsr.mean()}")
         param_config.log.war(f"loss of test data on centralized method: "
-                              f"{loss_c_test_tsr.mean()}")
+                             f"{loss_c_test_tsr.mean()}")
         param_config.log.war(f"loss of training data on distributed method: "
-                              f"{loss_d_train_tsr.mean()}")
+                             f"{loss_d_train_tsr.mean()}")
         param_config.log.war(f"loss of test data on distributed method: "
-                              f"{loss_d_test_tsr.mean()}")
+                             f"{loss_d_test_tsr.mean()}")
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
+
+
+def dfnn_ite_para_ao(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+    """
+    todo: consider all parameters in para_mu_list into algorithm
+    :param param_config:
+    :param train_data: dataset
+    :param test_data: dataset
+    :return:
+    """
+    n_mu_list = param_config.para_mu_list.shape[0]
+    n_mu1_list = param_config.para_mu1_list.shape[0]
+
+    loss_c_train_mu_tsr = torch.zeros(n_mu_list, n_mu1_list).double()
+    loss_c_test_mu_tsr = torch.zeros(n_mu_list, n_mu1_list).double()
+    loss_d_train_mu_tsr = torch.zeros(n_mu_list, n_mu1_list).double()
+    loss_d_test_mu_tsr = torch.zeros(n_mu_list, n_mu1_list).double()
+
+    for i in torch.arange(n_mu_list):
+        for j in torch.arange(n_mu1_list):
+            param_config.para_mu_current = param_config.para_mu_list[i]
+            param_config.para_mu1_current = param_config.para_mu1_list[j]
+            param_config.log.info(f"running param mu: {param_config.para_mu_current}")
+            param_config.log.info(f"running param mu1: {param_config.para_mu1_current}")
+
+            loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+                hdfnn_ao_run(param_config, train_data, test_data)
+            loss_c_train_mu_tsr[i, j, :] = loss_c_train.double()
+            loss_c_test_mu_tsr[i, j, :] = loss_c_test.double()
+            loss_d_train_mu_tsr[i, j, :] = loss_d_train.double()
+            loss_d_test_mu_tsr[i, j, :] = loss_d_test.double()
+
+    return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
 
 
 def dfnn_ite_para_kfolds_ao(param_config: ParamConfig, dataset: Dataset):
@@ -630,6 +663,39 @@ def dfnn_ite_para_kfolds_ao(param_config: ParamConfig, dataset: Dataset):
             loss_d_test_mu_tsr[i, j, :] = loss_d_test.squeeze().double()
 
     return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
+
+
+def dfnn_ite_rules_para_ao(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+    """
+    todo: this method is to calculate different rule numbers on distribute fuzzy Neuron network iterately
+    :param param_config:
+    :param train_data: dataset
+    :param test_data: dataset
+    :return:
+    """
+    n_mu_list = param_config.para_mu_list.shape[0]
+    n_mu1_list = param_config.para_mu1_list.shape[0]
+
+    loss_c_train_tsr = torch.empty(0, n_mu_list, n_mu1_list).double().double()
+    loss_c_test_tsr = torch.empty(0, n_mu_list, n_mu1_list).double().double()
+    loss_d_train_tsr = torch.empty(0, n_mu_list, n_mu1_list).double().double()
+    loss_d_test_tsr = torch.empty(0, n_mu_list, n_mu1_list).double().double()
+
+    n_rule_list = param_config.n_rules_list
+    for i in torch.arange(n_rule_list.shape[0]):
+        n_rules = n_rule_list[int(i)]
+        param_config.log.info(f"running at rule number: {n_rules}")
+        param_config.n_rules = n_rules
+
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+            dfnn_ite_para_ao(param_config, train_data, test_data)
+
+        loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
+        loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
+        loss_d_train_tsr = torch.cat((loss_d_train_tsr, loss_d_train.unsqueeze(0).double()), 0)
+        loss_d_test_tsr = torch.cat((loss_d_test_tsr, loss_d_test.unsqueeze(0).double()), 0)
+
+    return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
 
 def dfnn_ite_rules_para_kfold_ao(param_config: ParamConfig, dataset: Dataset):
