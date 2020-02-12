@@ -6,7 +6,7 @@ from loss_utils import LossFunc, NRMSELoss, RMSELoss, MSELoss, Map, LikelyLoss
 from utils import Logger
 from neuron import Neuron
 from seperator import FeaSeperator
-from model import NetBase, TreeNet, TreeFNNet, TreeDeepNet
+from model import NetBase, TreeNet, TreeFNNet, TreeDeepNet, FnnAO
 import yaml
 
 
@@ -129,6 +129,8 @@ class ParamConfig(object):
             self.net = TreeNet(neuron)
         elif config_content['model'] == 'fuzzy_tree_dnn':
             self.net = TreeDeepNet(neuron)
+        elif config_content['model'] == 'fnn_ao':
+            self.net = FnnAO(neuron)
 
     def get_cur_dataset(self, dataset_idx):
         dataset_name = self.dataset_list[dataset_idx]

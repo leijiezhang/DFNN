@@ -5,6 +5,7 @@ from typing import List
 import torch
 import torch.nn as nn
 from math_utils import cal_fc_w
+from sklearn.metrics import log_loss
 import abc
 
 
@@ -251,34 +252,22 @@ class FnnAO(NetBase):
         data_tmp = data
         neuron_seed = self.get_neuron_seed()
 
-        rules_tree: List[List[type(neuron_seed)]] = []
         sub_seperator = fea_seperator[int(0)]
         sub_dataset_list = data_tmp.get_subset_fea(sub_seperator)
 
-        # set level j
-        rules_sub: List[type(neuron_seed)] = []
-        y_sub = torch.empty(data.Y.shape[0], 0).double()
-
-        # cat all centers in different branch
-        # center_all = torch.empty(int(n_rules_tree[0][0], 0))
-        # width_all = torch.empty(int(n_rules_tree[0][0], 0))
-
-        # neuron_c = neuron_seed.clone()
-
         sub_dataset_tmp = sub_dataset_list[0]
         n_rule_tmp = int(n_rules_tree[0][0])
-
-        # get output size of this model
-        n_out_final = sub_dataset_tmp.Y.shape[1]
 
         n_smpl_tmp = sub_dataset_tmp.X.shape[0]
         n_fea_tmp = sub_dataset_tmp.X.shape[1] + 1
         n_h = n_rule_tmp * n_fea_tmp
 
-        h_all = torch.empty(0, n_smpl_tmp, n_h)
+        h_all = torch.empty(0, n_smpl_tmp, n_h).double()
         n_branch = len(sub_seperator)
 
-        neuron_c = neuron_seed.clone()
+        # get neuron tree
+        rules_tree: List[List[type(neuron_seed)]] = []
+        rules_sub: List[type(neuron_seed)] = []
         for i in torch.arange(n_branch):
             neuron_seed.clear()
             neuron_c = neuron_seed.clone()
@@ -286,66 +275,61 @@ class FnnAO(NetBase):
             kwargs['data'] = sub_dataset_i
             kwargs['n_rules'] = int(n_rules_tree[0][i])
             neuron_c.forward(**kwargs)
+            rules_sub.append(neuron_c)
             # get rules in neuron and update centers and bias
             rule_ao = neuron_c.get_rules()
 
             # get h computer in neuron
             h_computer_ao = neuron_c.get_h_computer()
-            h_tmp, _ = h_computer_ao.comute_h(data.X, rule_ao)
+            h_tmp, _ = h_computer_ao.comute_h(sub_dataset_i.X, rule_ao)
 
             h_cal_tmp = h_tmp.permute((1, 0, 2))  # N * n_rules * (d + 1)
 
-            h_cal_tmp = h_cal_tmp.reshape(n_smpl_tmp, n_h)
-            h_all = torch.cat((h_all, h_cal_tmp), 0)
-            # center_all = torch.cat((center_all, neuron_c.get_rules().center_list), 1)
-            # width_all = torch.cat((width_all, neuron_c.get_rules().widths_list), 1)
+            h_cal_tmp: torch.Tensor = h_cal_tmp.reshape(n_smpl_tmp, n_h)
+            h_all = torch.cat((h_all, h_cal_tmp.unsqueeze(0)), 0)
+
+        rules_tree.append(rules_sub)
+        self.set_neuron_tree(rules_tree)
 
         # set bottom level AO
-        n_out_middle = 2
-        w_x = torch.rand(n_smpl_tmp, n_branch, n_branch * n_h)
-        w_y = torch.rand(n_smpl_tmp, n_branch, 1)
+        w_x = torch.rand(n_branch, n_h).double()
+        w_y = torch.rand(n_branch, 1).double()
+        w_y_h = torch.rand(n_smpl_tmp, n_branch).double()
+        w_x_h = h_all.clone()
 
-        h_cal_tmp = h_all.permute((1, 0, 2))  # n_smpl * n_brunch * n_h
-
-        # get h matrix used in algorithm
-        h_all_cal = torch.zeros(n_smpl_tmp, n_branch, n_branch*n_h)
-        for i in torch.arange(n_smpl_tmp):
-            h_all_tmp = torch.zeros(n_branch, n_branch*n_h)
-            for j in torch.arange(n_branch):
-                h_all_tmp[j, j*n_branch*n_h: (j+1)*n_branch*n_h-1] = h_cal_tmp[i, j, :]
-            h_all_cal[i, :, :] = h_all_tmp
-
+        diff = 1
         loss = 100
         run_th = 0.0001
-        while loss > run_th:
+        mu_1 = 0.1
+        mu_2 = 0.1
+        while diff > run_th:
             # fix  w_y update w_x
-            for i in torch.arange(n_smpl_tmp):
-                h_all_tmp = h_all_cal[i, :, :]
-                # w_x_tmp = w_x[i, :, :]
-                h_w_y = h_all_tmp.mm(w_y[i, :, :])
+            for i in torch.arange(n_branch):
+                w_x_h[i, :, :] = w_y[i] * h_all[i, :, :]
 
-                w_x_optimal_tmp = torch.inverse(h_w_y.t().mm(h_w_y) + para_mu * torch.eye(n_branch).double()).mm(
-                    h_w_y.t().mm(sub_dataset_list[0].Y[i]))
-                w_x[i, :, :] = w_x_optimal_tmp
+            w_x_h_cal = w_x_h.permute(1, 0, 2)
+            w_x_h_cal = w_x_h_cal.reshape(n_smpl_tmp, -1)
+            w_x_optimal = torch.inverse(w_x_h_cal.t().mm(w_x_h_cal) + mu_1 * torch.eye(w_x_h_cal.shape[1]).double()) \
+                .mm(w_x_h_cal.t().mm(data.Y))
+
+            w_x = w_x_optimal.reshape(n_branch, n_h)
 
             # fix  w_x update w_y
-            for i in torch.arange(n_smpl_tmp):
-                h_all_tmp = h_all_cal[i, :, :]
-                w_x_tmp = w_x[i, :, :]
-                w_x_h = w_x_tmp.mm(h_all_tmp)
+            for i in torch.arange(n_branch):
+                w_y_h[:, i] = h_all[i, :, :].mm(w_x[i, :].unsqueeze(1)).squeeze()
 
-                w_y_optimal_tmp = torch.inverse(w_x_h.t().mm(w_x_h) + para_mu * torch.eye(n_branch).double()).mm(
-                    w_x_h.t().mm(sub_dataset_list[0].Y[i]))
-                w_y[i, :, :] = w_y_optimal_tmp
+            w_y = torch.inverse(w_y_h.t().mm(w_y_h) + mu_2 * torch.eye(w_y_h.shape[1]).double()) \
+                .mm(w_y_h.t().mm(data.Y))
 
             # compute loss
-            loss_tmp = []
-            for i in torch.arange(n_smpl_tmp):
-                y_tmp = sub_dataset_list[0].Y[i]
-                y_hap_tmp = w_x[i, :, :].mm(h_all_cal[i, :, :]).mm(w_y[i, :, :])
-                loss_tmp.append(y_tmp - y_hap_tmp)
+            y_tmp = data.Y
 
-            loss = torch.norm(loss_tmp)
+            y_hap_tmp = w_y_h.mm(w_y)
+
+            loss_tmp = log_loss(y_tmp, y_hap_tmp)
+            diff = abs(loss_tmp - loss)
+            loss = loss_tmp
+            print(f"Loss of AO: {loss}")
 
         self.__w_x = w_x
 
@@ -358,6 +342,8 @@ class FnnAO(NetBase):
                                                neuron_seed.get_fnn_solver()))
         neuron_tree: List[List[type(neuron_seed)]] = []
         self.set_neuron_tree(neuron_tree)
+        self.__w_x: torch.Tensor = []
+        self.__w_y: torch.Tensor = []
 
     def predict(self, data: Dataset, seperator_p: FeaSeperator = None):
         neuron_tree = self.get_neuron_tree()
@@ -368,23 +354,44 @@ class FnnAO(NetBase):
             fea_seperator = seperator_p.get_seperator()
         data_tmp = data
 
-        for i in torch.arange(len(neuron_tree)):
-            output_sub = torch.empty(data.Y.shape[0], 0).double()
-            # get level i
-            rules_sub: List[type(neuron_seed)] = neuron_tree[int(i)]
-            sub_dataset_list = data_tmp.get_subset_fea(fea_seperator[int(i)])
-            for j in torch.arange(len(rules_sub)):
-                neuron = rules_sub[int(j)]
-                sub_dataset_j = sub_dataset_list[j]
-                output_j = neuron.predict(sub_dataset_j)
-                output_sub = torch.cat((output_sub, output_j), 1)
+        neuron_tmp: Neuron = neuron_tree[0][0]
+        n_rule_tmp = int(neuron_tmp.get_rules().n_rules)
 
-            # set outputs of this level as dataset
-            data_tmp = Dataset(f"{data}_level{int(i + 1)}", output_sub, data.Y, data.task)
+        sub_dataset_list = data_tmp.get_subset_fea(fea_seperator[0])
+        sub_dataset_tmp = sub_dataset_list[0]
+        n_smpl_tmp = sub_dataset_tmp.X.shape[0]
+        n_fea_tmp = sub_dataset_tmp.X.shape[1] + 1
+        n_h = n_rule_tmp * n_fea_tmp
 
-        # get bottom fc layer
-        w = self.get_fc_w()
-        y_hat = data_tmp.X.mm(w)
+        h_all = torch.empty(0, n_smpl_tmp, n_h).double()
+        rules_sub: List[type(neuron_seed)] = neuron_tree[0]
+
+        n_branch = len(rules_sub)
+        for j in torch.arange(n_branch):
+            neuron = rules_sub[int(j)]
+            sub_dataset_j = sub_dataset_list[j]
+            neuron.predict(sub_dataset_j)
+            # get rules in neuron and update centers and bias
+            rule_ao = neuron.get_rules()
+
+            # get h computer in neuron
+            h_computer_ao = neuron.get_h_computer()
+            h_tmp, _ = h_computer_ao.comute_h(sub_dataset_j.X, rule_ao)
+
+            h_cal_tmp = h_tmp.permute((1, 0, 2))  # N * n_rules * (d + 1)
+
+            h_cal_tmp = h_cal_tmp.reshape(n_smpl_tmp, n_h)
+            h_all = torch.cat((h_all, h_cal_tmp.unsqueeze(0)), 0)
+
+        # get bottom layer
+        w_x = self.__w_x
+        w_y = self.__w_y
+
+        w_y_h = torch.rand(n_smpl_tmp, n_branch).double()
+        for i in torch.arange(n_branch):
+            w_y_h[:, i] = h_all[i, :, :].mm(w_x[i, :].unsqueeze(1)).squeeze()
+
+        y_hat = w_y_h.mm(w_y)
         return y_hat
 
     def get_neuron_tree(self):
@@ -392,12 +399,6 @@ class FnnAO(NetBase):
 
     def set_neuron_tree(self, neuron_tree: List[List[type(Neuron)]]):
         self.__neuron_tree = neuron_tree
-
-    def set_fc_w(self, fc_w: torch.Tensor):
-        self.__fc_w = fc_w
-
-    def get_fc_w(self):
-        return self.__fc_w
 
 
 class MLP(nn.Module):

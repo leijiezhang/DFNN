@@ -1,4 +1,4 @@
-model: 'fuzzy_tree' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
+model: 'fnn_ao' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn' 'fnn_ao'
 
 n_run: 1
 n_kfolds: 10
