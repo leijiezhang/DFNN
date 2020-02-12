@@ -584,18 +584,18 @@ def dfnn_kfolds_ao(param_config: ParamConfig, dataset: Dataset):
                               f" {loss_c_train_tsr.mean()}")
         param_config.log.war(f"Mean Accuracy  of test data on centralized method: "
                               f"{loss_c_test_tsr.mean()}")
-        param_config.log.war(f"Mean Accuracy  of training data using SVM:"
+        param_config.log.war(f"Mean Accuracy  of training data on distributed method:"
                               f" {loss_d_train_tsr.mean()}")
-        param_config.log.war(f"Mean Accuracy  of test data using SVM: "
+        param_config.log.war(f"Mean Accuracy  of test data on distributed method: "
                               f"{loss_d_test_tsr.mean()}")
     else:
         param_config.log.war(f"loss of training data on centralized method: "
                               f"{loss_c_train_tsr.mean()}")
         param_config.log.war(f"loss of test data on centralized method: "
                               f"{loss_c_test_tsr.mean()}")
-        param_config.log.war(f"loss of training data distributed method: "
+        param_config.log.war(f"loss of training data on distributed method: "
                               f"{loss_d_train_tsr.mean()}")
-        param_config.log.war(f"loss of test data distributed method: "
+        param_config.log.war(f"loss of test data on distributed method: "
                               f"{loss_d_test_tsr.mean()}")
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
