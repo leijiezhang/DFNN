@@ -578,6 +578,25 @@ def dfnn_kfolds_ao(param_config: ParamConfig, dataset: Dataset):
     loss_c_test_tsr = torch.tensor(loss_c_test_tsr)
     loss_d_train_tsr = torch.tensor(loss_d_train_tsr)
     loss_d_test_tsr = torch.tensor(loss_d_test_tsr)
+
+    if test_data.task == 'C':
+        param_config.log.war(f"Mean Accuracy of training data on centralized method:"
+                              f" {loss_c_train_tsr.mean()}")
+        param_config.log.war(f"Mean Accuracy  of test data on centralized method: "
+                              f"{loss_c_test_tsr.mean()}")
+        param_config.log.war(f"Mean Accuracy  of training data using SVM:"
+                              f" {loss_d_train_tsr.mean()}")
+        param_config.log.war(f"Mean Accuracy  of test data using SVM: "
+                              f"{loss_d_test_tsr.mean()}")
+    else:
+        param_config.log.war(f"loss of training data on centralized method: "
+                              f"{loss_c_train_tsr.mean()}")
+        param_config.log.war(f"loss of test data on centralized method: "
+                              f"{loss_c_test_tsr.mean()}")
+        param_config.log.war(f"loss of training data distributed method: "
+                              f"{loss_d_train_tsr.mean()}")
+        param_config.log.war(f"loss of test data distributed method: "
+                              f"{loss_d_test_tsr.mean()}")
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
 
 
