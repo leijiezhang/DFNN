@@ -58,3 +58,10 @@ plt.plot(y)
 plt.legend(['lei'])
 
 print('lei')
+
+train_losses = []
+x = torch.linspace(1, len(train_losses)+1, len(train_losses)).numpy()
+y = train_losses
+
+plt.plot(x, y)
+plt.show()

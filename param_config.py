@@ -6,7 +6,7 @@ from loss_utils import LossFunc, NRMSELoss, RMSELoss, MSELoss, Map, LikelyLoss
 from utils import Logger
 from neuron import Neuron
 from seperator import FeaSeperator
-from model import NetBase, TreeNet, TreeFNNet, TreeDeepNet, FnnAO
+from model import NetBase, TreeNet, TreeFNNet, FnnDnn, FnnAO
 import yaml
 
 
@@ -30,8 +30,8 @@ class ParamConfig(object):
         # set mu
         self.para_mu_current = 0
         self.para_mu_list = []
-        self.para_mu_current = 0
-        self.para_mu_list = []
+        self.para_mu1_current = 0
+        self.para_mu1_list = []
         # set rho
         self.para_rho = 1
 
@@ -46,7 +46,8 @@ class ParamConfig(object):
         self.fea_seperator: FeaSeperator = None
 
         # initiate net
-        self.net: NetBase = None
+        self.model: NetBase = None
+        self.model_name = ''
         self.log = None
 
         # config content
@@ -125,16 +126,21 @@ class ParamConfig(object):
 
         # set model
         neuron = Neuron(self.rules, self.h_computer, self.fnn_solver)
+        self.model_name = config_content['model']
         if config_content['model'] == 'base':
-            self.net = NetBase(neuron)
-        elif config_content['model'] == 'fuzzy_tree_fn':
-            self.net = TreeFNNet(neuron)
-        elif config_content['model'] == 'fuzzy_tree':
-            self.net = TreeNet(neuron)
-        elif config_content['model'] == 'fuzzy_tree_dnn':
-            self.net = TreeDeepNet(neuron)
-        elif config_content['model'] == 'fnn_ao':
-            self.net = FnnAO(neuron)
+            self.model = NetBase(neuron)
+        elif config_content['model'] == 'hdfnn_fn':
+            self.model = TreeFNNet(neuron)
+        elif config_content['model'] == 'hdfnn':
+            self.model = TreeNet(neuron)
+            tree_rule_spesify = config_content['tree_rule_spesify']
+            if tree_rule_spesify == 'true':
+                n_rule_spesify = config_content['n_rule_spesify']
+                self.model_name = f"{self.model_name}_s_{n_rule_spesify}"
+        elif config_content['model'] == 'hdfnn_dnn':
+            self.model = FnnDnn(neuron)
+        elif config_content['model'] == 'hdfnn_ao':
+            self.model = FnnAO(neuron)
 
     def get_cur_dataset(self, dataset_idx):
         dataset_name = self.dataset_list[dataset_idx]

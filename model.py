@@ -1,8 +1,9 @@
 from neuron import Neuron
-from dataset import Dataset
+from dataset import Dataset, DatasetH
 from seperator import FeaSeperator
 from typing import List
 import torch
+from torch.utils.data import DataLoader
 import torch.nn as nn
 from math_utils import cal_fc_w
 from sklearn.metrics import log_loss
@@ -250,11 +251,10 @@ class FnnAO(NetBase):
 
         fea_seperator = seperator.get_seperator()
         n_rules_tree = seperator.get_n_rule_tree()
-        data_tmp = data
         neuron_seed = self.get_neuron_seed()
 
         sub_seperator = fea_seperator[int(0)]
-        sub_dataset_list = data_tmp.get_subset_fea(sub_seperator)
+        sub_dataset_list = data.get_subset_fea(sub_seperator)
 
         sub_dataset_tmp = sub_dataset_list[0]
         n_rule_tmp = int(n_rules_tree[0][0])
@@ -269,6 +269,8 @@ class FnnAO(NetBase):
         # get neuron tree
         rules_tree: List[List[type(neuron_seed)]] = []
         rules_sub: List[type(neuron_seed)] = []
+        
+        # get output of every branches of upper dfnn layer
         for i in torch.arange(n_branch):
             neuron_seed.clear()
             neuron_c = neuron_seed.clone()
@@ -298,6 +300,7 @@ class FnnAO(NetBase):
         w_y_h = torch.rand(n_smpl_tmp, n_branch).double()
         w_x_h = h_all.clone()
 
+        # start AO optimization
         diff = 1
         loss = 100
         run_th = 0.0001
@@ -351,12 +354,11 @@ class FnnAO(NetBase):
             fea_seperator = FeaSeperator(data.name).get_seperator()
         else:
             fea_seperator = seperator_p.get_seperator()
-        data_tmp = data
 
         neuron_tmp: Neuron = neuron_tree[0][0]
         n_rule_tmp = int(neuron_tmp.get_rules().n_rules)
 
-        sub_dataset_list = data_tmp.get_subset_fea(fea_seperator[0])
+        sub_dataset_list = data.get_subset_fea(fea_seperator[0])
         sub_dataset_tmp = sub_dataset_list[0]
         n_smpl_tmp = sub_dataset_tmp.X.shape[0]
         n_fea_tmp = sub_dataset_tmp.X.shape[1] + 1
@@ -417,35 +419,36 @@ class MLP(nn.Module):
         return x
 
 
-class LeiNet(nn.Module):
-    def __init__(self, n_neuron, n_rules):
-        super(LeiNet, self).__init__()
-        self.n_neuron = n_neuron
-        self.n_rules = n_rules
+class ConsequentNet(nn.Module):
+    def __init__(self, n_brunch, n_h_fea):
+        super(ConsequentNet, self).__init__()
+        self.n_brunch = n_brunch
+        self.n_h_fea = n_h_fea  # number of H matrix features
 
         n_out_layer1 = 1
         layer_head = []
-        for i in torch.arange(n_neuron):
-            layer_head.append(nn.Linear(n_rules, n_out_layer1))
+        for i in torch.arange(n_brunch):
+            layer_head.append(nn.Linear(n_h_fea, n_out_layer1))
         layer_foot = nn.Sequential(
-            nn.Linear(n_out_layer1 * n_neuron, 2),
+            nn.Linear(n_brunch, 2),
             # nn.Linear(n_rules * n_neuron, 2 * n_rules * n_neuron),
             # nn.Linear(2 * n_rules * n_neuron, 2),
             # nn.Linear(n_rules * n_neuron, n_rules),
             # nn.Linear(n_rules, 2),
-            nn.Softmax(),
+            nn.ReLU(),
         )
         self.__layer_head = layer_head
         self.__layer_foot = layer_foot
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor):
         layer_head = self.__layer_head
 
         # run network
-        input_layer_foot = torch.empty(x[0].shape[0], 0).float()
-        for i in torch.arange(len(x)):
-            x_sub = x[int(i)]
-            x_sub = x_sub.view(x_sub.size(0), -1).float()
+        x = x.permute(1, 0, 2)
+        input_layer_foot = torch.empty(x.shape[1], 0).float()
+
+        for i in torch.arange(x.shape[0]):
+            x_sub = x[i, :, :].float()
             sub_net = layer_head[int(i)]
             out_layer_head = sub_net(x_sub)
             input_layer_foot = torch.cat((input_layer_foot, out_layer_head), 1)
@@ -455,6 +458,203 @@ class LeiNet(nn.Module):
         return output_layer_foot
 
 
+class FnnDnn(NetBase):
+    """
+    the bottome layer is a fc layer instead of a neuron
+    """
+
+    def __init__(self, neuron_seed: Neuron):
+        super(FnnDnn, self).__init__(neuron_seed)
+        self.__neuron_tree: List[List[type(neuron_seed)]] = []
+        self.__consequent_net: ConsequentNet = []
+
+    def forward(self, **kwargs):
+        data: Dataset = kwargs['data']
+        if 'seperator' not in kwargs:
+            seperator = FeaSeperator(data.name).get_seperator()
+        else:
+            seperator: FeaSeperator = kwargs['seperator']
+
+        fea_seperator = seperator.get_seperator()
+        n_rules_tree = seperator.get_n_rule_tree()
+        neuron_seed = self.get_neuron_seed()
+
+        sub_seperator = fea_seperator[int(0)]
+        sub_dataset_list = data.get_subset_fea(sub_seperator)
+
+        sub_dataset_tmp = sub_dataset_list[0]
+        n_rule_tmp = int(n_rules_tree[0][0])
+
+        n_smpl_tmp = sub_dataset_tmp.X.shape[0]
+        n_fea_tmp = sub_dataset_tmp.X.shape[1] + 1
+        n_h = n_rule_tmp * n_fea_tmp
+
+        h_all = torch.empty(0, n_smpl_tmp, n_h).double()
+        n_branch = len(sub_seperator)
+
+        # get neuron tree
+        rules_tree: List[List[type(neuron_seed)]] = []
+        rules_sub: List[type(neuron_seed)] = []
+
+        # get output of every branches of upper dfnn layer
+        loss_list = []
+        for i in torch.arange(n_branch):
+            neuron_seed.clear()
+            neuron_c = neuron_seed.clone()
+            sub_dataset_i = sub_dataset_list[i]
+            kwargs['data'] = sub_dataset_i
+            kwargs['n_rules'] = int(n_rules_tree[0][i])
+            neuron_c.forward(**kwargs)
+            rules_sub.append(neuron_c)
+            # get rules in neuron and update centers and bias
+            rule_ao = neuron_c.get_rules()
+
+            # get h computer in neuron
+            h_computer_ao = neuron_c.get_h_computer()
+            h_tmp, _ = h_computer_ao.comute_h(sub_dataset_i.X, rule_ao)
+
+            h_cal_tmp = h_tmp.permute((1, 0, 2))  # N * n_rules * (d + 1)
+
+            h_cal_tmp: torch.Tensor = h_cal_tmp.reshape(n_smpl_tmp, n_h)
+            h_all = torch.cat((h_all, h_cal_tmp.unsqueeze(0)), 0)
+
+        rules_tree.append(rules_sub)
+        self.set_neuron_tree(rules_tree)
+
+        # set consequent net
+        consequent_net: ConsequentNet = ConsequentNet(n_branch, n_h)
+        optimizer = torch.optim.Adam(consequent_net.parameters(), lr=0.0001)
+        loss_fn = nn.CrossEntropyLoss()
+
+        # transform h tensor to torch dataset
+        train_dataset = DatasetH(x=h_all, y=data.Y)
+        train_loader = DataLoader(dataset=train_dataset, batch_size=n_smpl_tmp, shuffle=False)
+
+        epochs = 6000
+        train_th = 0.000001
+        train_losses = []
+        for epoch in range(epochs):
+            loss_diff = 0
+            consequent_net.train()
+            for i, (h_batch, labels) in enumerate(train_loader):
+                optimizer.zero_grad()
+                outputs = consequent_net(h_batch)
+                loss = loss_fn(outputs.double(), labels.long().squeeze(1))
+                loss.backward()
+                optimizer.step()
+
+                train_losses.append(loss.item())
+
+                print(f"epoch : {epoch + 1}, train loss : {train_losses[-1]} ")
+            if len(train_losses) >= 2:
+                loss_diff = abs(train_losses[-1] - train_losses[len(train_losses)-2])
+                # when the whole model stops to update
+                if loss_diff < train_th:
+                    break
+
+            # # validate the model
+            # consequent_net.eval()
+            # correct = 0
+            # total = 0
+            # with torch.no_grad():
+            #     for i, (h_batch, labels) in enumerate(train_loader):
+            #         outputs = consequent_net(h_batch)
+            #         # loss = loss_fn(outputs, labels.long().squeeze(1))
+            #
+            #         # valid_losses = loss.item()
+            #         _, predicted = torch.max(outputs.data, 1)
+            #         correct += (predicted == labels.squeeze().long()).sum().item()
+            #         total += labels.size(0)
+            #
+            #         # print(f"valid loss : {valid_losses}")
+
+            # accuracy = 100 * correct / total
+            # print(f"train acc : {accuracy}%")
+        self.__consequent_net = consequent_net
+
+    def clear(self):
+        neuron_seed = self.get_neuron_seed()
+        self.set_neuron_seed(type(neuron_seed)(neuron_seed.get_h_computer(),
+                                               neuron_seed.get_h_computer(),
+                                               neuron_seed.get_fnn_solver()))
+        neuron_tree: List[List[type(neuron_seed)]] = []
+        self.set_neuron_tree(neuron_tree)
+        self.__consequent_net = []
+
+    def predict(self, data: Dataset, seperator_p: FeaSeperator = None):
+        neuron_tree = self.get_neuron_tree()
+        neuron_seed = self.get_neuron_seed()
+        if seperator_p is None:
+            fea_seperator = FeaSeperator(data.name).get_seperator()
+        else:
+            fea_seperator = seperator_p.get_seperator()
+
+        neuron_tmp: Neuron = neuron_tree[0][0]
+        n_rule_tmp = int(neuron_tmp.get_rules().n_rules)
+
+        sub_dataset_list = data.get_subset_fea(fea_seperator[0])
+        sub_dataset_tmp = sub_dataset_list[0]
+        n_smpl_tmp = sub_dataset_tmp.X.shape[0]
+        n_fea_tmp = sub_dataset_tmp.X.shape[1] + 1
+        n_h = n_rule_tmp * n_fea_tmp
+
+        h_all = torch.empty(0, n_smpl_tmp, n_h).double()
+        rules_sub: List[type(neuron_seed)] = neuron_tree[0]
+
+        n_branch = len(rules_sub)
+        for j in torch.arange(n_branch):
+            neuron = rules_sub[int(j)]
+            sub_dataset_j = sub_dataset_list[j]
+            neuron.predict(sub_dataset_j)
+            # get rules in neuron and update centers and bias
+            rule_ao = neuron.get_rules()
+
+            # get h computer in neuron
+            h_computer_ao = neuron.get_h_computer()
+            h_tmp, _ = h_computer_ao.comute_h(sub_dataset_j.X, rule_ao)
+
+            h_cal_tmp = h_tmp.permute((1, 0, 2))  # N * n_rules * (d + 1)
+
+            h_cal_tmp = h_cal_tmp.reshape(n_smpl_tmp, n_h)
+            h_all = torch.cat((h_all, h_cal_tmp.unsqueeze(0)), 0)
+
+        # get consequent net
+        # transform h tensor to torch dataset
+        test_dataset = DatasetH(x=h_all, y=data.Y)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=64, shuffle=True)
+        consequent_net = self.__consequent_net
+
+        loss_fn = nn.CrossEntropyLoss()
+
+        consequent_net.eval()
+        correct = 0
+        total = 0
+        y_hat = torch.empty(0)
+        with torch.no_grad():
+            for i, (h_batch, labels) in enumerate(test_loader):
+                outputs = consequent_net(h_batch)
+                # loss = loss_fn(outputs, labels.long().squeeze(1))
+                #
+                # valid_losses = loss.item()
+
+                _, y_hat_tmp = torch.max(outputs.data, 1)
+                correct += (y_hat_tmp == labels.squeeze().long()).sum().item()
+                total += labels.size(0)
+                y_hat = torch.cat((y_hat, y_hat_tmp.unsqueeze(0).float()), 1)
+                # print(f"valid loss : {valid_losses}")
+
+        accuracy = 100 * correct / total
+        print(f"train acc : {accuracy}%")
+
+        return y_hat.t().double()
+
+    def get_neuron_tree(self):
+        return self.__neuron_tree
+
+    def set_neuron_tree(self, neuron_tree: List[List[type(Neuron)]]):
+        self.__neuron_tree = neuron_tree
+
+
 class TreeDeepNet(NetBase):
     """
     the bottome layer is a deep net instead of a neuron
@@ -462,9 +662,9 @@ class TreeDeepNet(NetBase):
     def __init__(self, neuron_seed: Neuron):
         super(TreeDeepNet, self).__init__(neuron_seed)
         self.__neuron_tree: List[List[type(neuron_seed)]] = []
-        self.__lei_net: LeiNet = []
+        self.__lei_net: ConsequentNet = []
 
-    def set_lei_net(self, lei_net: LeiNet):
+    def set_lei_net(self, lei_net: ConsequentNet):
         self.__lei_net = lei_net
 
     def get_lei_net(self):
@@ -509,7 +709,7 @@ class TreeDeepNet(NetBase):
 
                 n_neuron = len(fea_seperator[0])
                 n_rules = int(n_rules_tree[0][0])
-                model_foot: LeiNet = LeiNet(n_neuron, n_rules)
+                model_foot: ConsequentNet = ConsequentNet(n_neuron, n_rules)
                 optimizer = torch.optim.Adam(model_foot.parameters(), lr=0.0001)
 
                 epochs = 1500
@@ -576,7 +776,7 @@ class TreeDeepNet(NetBase):
         # get bottom fc layer
         loss_fn = nn.CrossEntropyLoss()
 
-        model: LeiNet = self.get_lei_net()
+        model: ConsequentNet = self.get_lei_net()
         model.eval()
         with torch.no_grad():
             outputs = model(w_sub)

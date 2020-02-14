@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import fuzzy_net_run, mlp_run, neuron_run, dfnn_kfolds
+from dfnn_run import hdfnn_run, mlp_run, neuron_run, dfnn_kfolds
 from utils import load_data, load_eeg_data
 import torch
 import os
@@ -40,7 +40,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     #     neuron_run(param_config, dataset)
 
     acc_c_train, acc_c_test, acc_d_train, acc_d_test = \
-        fuzzy_net_run(param_config, train_data, test_data)
+        hdfnn_run(param_config, train_data, test_data)
 
     # test_acc, train_losses = mlp_run(param_config, dataset)
 
