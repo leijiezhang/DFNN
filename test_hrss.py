@@ -1,7 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import hdfnn_run, mlp_run, neuron_run, dfnn_kfolds
-from dataset import Result
 from utils import load_data, Logger
 import torch
 
@@ -63,6 +62,3 @@ for i in torch.arange(len(param_config.dataset_list)):
                           f": {round(float(loss_d_train_mean), 4)}/{round(float(loss_d_train_std), 4)}")
     param_config.log.info(f"mAp of test data on distributed method: {round(float(loss_d_test_mean), 4)}"
                           f"/{round(float(loss_d_test_std), 4)}")
-
-
-

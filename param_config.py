@@ -46,7 +46,8 @@ class ParamConfig(object):
         self.fea_seperator: FeaSeperator = None
 
         # initiate net
-        self.net: NetBase = None
+        self.model: NetBase = None
+        self.model_name = ''
         self.log = None
 
         # config content
@@ -125,16 +126,21 @@ class ParamConfig(object):
 
         # set model
         neuron = Neuron(self.rules, self.h_computer, self.fnn_solver)
+        self.model_name = config_content['model']
         if config_content['model'] == 'base':
-            self.net = NetBase(neuron)
+            self.model = NetBase(neuron)
         elif config_content['model'] == 'hdfnn_fn':
-            self.net = TreeFNNet(neuron)
+            self.model = TreeFNNet(neuron)
         elif config_content['model'] == 'hdfnn':
-            self.net = TreeNet(neuron)
+            self.model = TreeNet(neuron)
+            tree_rule_spesify = config_content['tree_rule_spesify']
+            if tree_rule_spesify == 'true':
+                n_rule_spesify = config_content['n_rule_spesify']
+                self.model_name = f"{self.model_name}_s_{n_rule_spesify}"
         elif config_content['model'] == 'hdfnn_dnn':
-            self.net = FnnDnn(neuron)
+            self.model = FnnDnn(neuron)
         elif config_content['model'] == 'hdfnn_ao':
-            self.net = FnnAO(neuron)
+            self.model = FnnAO(neuron)
 
     def get_cur_dataset(self, dataset_idx):
         dataset_name = self.dataset_list[dataset_idx]
