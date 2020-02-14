@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import fuzzy_net_run, mlp_run, neuron_run, dfnn_kfolds
+from dfnn_run import hdfnn_run, mlp_run, neuron_run, dfnn_kfolds
 from dataset import Result
 from utils import load_data, Logger
 import torch

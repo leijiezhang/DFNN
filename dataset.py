@@ -172,3 +172,21 @@ class DatasetNN(Dataset_nn):
         x: torch.Tensor = self.x[index, :]
         y: torch.Tensor = self.y[index, :]
         return x, y
+
+
+class DatasetH(Dataset_nn):
+    """
+    this is a pytorch dataset for H list used in FNNdNN model
+    """
+    def __init__(self, x, y=None):
+        super(DatasetH, self).__init__()
+        self.x: torch.Tensor = x
+        self.y: torch.Tensor = y
+
+    def __len__(self):
+        return self.x.shape[1]
+
+    def __getitem__(self, index):
+        x: torch.Tensor = self.x[:, index, :]
+        y: torch.Tensor = self.y[index, :]
+        return x, y

@@ -1,4 +1,4 @@
-model: 'fuzzy_tree' # 'base' 'fuzzy_tree' 'fuzzy_tree_fn'
+model: 'hdfnn_dnn' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
 
 n_run: 1
 n_kfolds: 3
@@ -20,8 +20,11 @@ dataset_list_all:
    'kc_house', 'motor_temperature', 'quake', 'skills',
    'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
 
-mu_current: 0.001
+mu_current: 0.1
 mu_list:
+  [0.0001, 0.001, 0.01, 0.1]
+mu1_current: 0.1
+mu1_list:
   [0.0001, 0.001, 0.01, 0.1]
 
 rho: 1
