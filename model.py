@@ -419,6 +419,31 @@ class MLP(nn.Module):
         return x
 
 
+# class ConsequentNet(nn.Module):
+#     def __init__(self, n_brunch, n_h_fea):
+#         super(ConsequentNet, self).__init__()
+#         self.n_brunch = n_brunch
+#         self.n_h_fea = n_h_fea  # number of H matrix features
+#
+#         n_out_layer1 = n_brunch
+#         layer_head = nn.Sequential(
+#             nn.Linear(n_brunch*n_h_fea, n_out_layer1),
+#             nn.Softmax(),
+#         )
+#         layer_foot = nn.Sequential(
+#             nn.Linear(n_brunch, 2),
+#             nn.ReLU(),
+#         )
+#         self.__layer_head = layer_head
+#         self.__layer_foot = layer_foot
+#
+#     def forward(self, x: torch.Tensor):
+#         x = x.view(x.shape[0], -1).float()
+#         input_layer_foot = self.__layer_head(x)
+#         output_layer_foot = self.__layer_foot(input_layer_foot)
+#         return output_layer_foot
+
+
 class ConsequentNet(nn.Module):
     def __init__(self, n_brunch, n_h_fea):
         super(ConsequentNet, self).__init__()
@@ -431,10 +456,6 @@ class ConsequentNet(nn.Module):
             layer_head.append(nn.Linear(n_h_fea, n_out_layer1))
         layer_foot = nn.Sequential(
             nn.Linear(n_brunch, 2),
-            # nn.Linear(n_rules * n_neuron, 2 * n_rules * n_neuron),
-            # nn.Linear(2 * n_rules * n_neuron, 2),
-            # nn.Linear(n_rules * n_neuron, n_rules),
-            # nn.Linear(n_rules, 2),
             nn.ReLU(),
         )
         self.__layer_head = layer_head
@@ -443,7 +464,6 @@ class ConsequentNet(nn.Module):
     def forward(self, x: torch.Tensor):
         layer_head = self.__layer_head
 
-        # run network
         x = x.permute(1, 0, 2)
         input_layer_foot = torch.empty(x.shape[1], 0).float()
 
@@ -453,8 +473,7 @@ class ConsequentNet(nn.Module):
             out_layer_head = sub_net(x_sub)
             input_layer_foot = torch.cat((input_layer_foot, out_layer_head), 1)
 
-        layer_foot = self.__layer_foot
-        output_layer_foot = layer_foot(input_layer_foot)
+        output_layer_foot = self.__layer_foot(input_layer_foot)
         return output_layer_foot
 
 
@@ -497,7 +516,6 @@ class FnnDnn(NetBase):
         rules_sub: List[type(neuron_seed)] = []
 
         # get output of every branches of upper dfnn layer
-        loss_list = []
         for i in torch.arange(n_branch):
             neuron_seed.clear()
             neuron_c = neuron_seed.clone()
@@ -523,18 +541,17 @@ class FnnDnn(NetBase):
 
         # set consequent net
         consequent_net: ConsequentNet = ConsequentNet(n_branch, n_h)
-        optimizer = torch.optim.Adam(consequent_net.parameters(), lr=0.0001)
+        optimizer = torch.optim.Adam(consequent_net.parameters(), lr=0.001)
         loss_fn = nn.CrossEntropyLoss()
 
         # transform h tensor to torch dataset
         train_dataset = DatasetH(x=h_all, y=data.Y)
         train_loader = DataLoader(dataset=train_dataset, batch_size=n_smpl_tmp, shuffle=False)
 
-        epochs = 6000
+        epochs = 3000
         train_th = 0.000001
         train_losses = []
         for epoch in range(epochs):
-            loss_diff = 0
             consequent_net.train()
             for i, (h_batch, labels) in enumerate(train_loader):
                 optimizer.zero_grad()
@@ -546,30 +563,30 @@ class FnnDnn(NetBase):
                 train_losses.append(loss.item())
 
                 print(f"epoch : {epoch + 1}, train loss : {train_losses[-1]} ")
-            if len(train_losses) >= 2:
-                loss_diff = abs(train_losses[-1] - train_losses[len(train_losses)-2])
-                # when the whole model stops to update
-                if loss_diff < train_th:
-                    break
+            # if len(train_losses) >= 2:
+            #     loss_diff = abs(train_losses[-1] - train_losses[len(train_losses)-2])
+            #     # when the whole model stops to update
+            #     if loss_diff < train_th:
+            #         break
 
-            # # validate the model
-            # consequent_net.eval()
-            # correct = 0
-            # total = 0
-            # with torch.no_grad():
-            #     for i, (h_batch, labels) in enumerate(train_loader):
-            #         outputs = consequent_net(h_batch)
-            #         # loss = loss_fn(outputs, labels.long().squeeze(1))
-            #
-            #         # valid_losses = loss.item()
-            #         _, predicted = torch.max(outputs.data, 1)
-            #         correct += (predicted == labels.squeeze().long()).sum().item()
-            #         total += labels.size(0)
-            #
-            #         # print(f"valid loss : {valid_losses}")
+            # validate the model
+            consequent_net.eval()
+            correct = 0
+            total = 0
+            with torch.no_grad():
+                for i, (h_batch, labels) in enumerate(train_loader):
+                    outputs = consequent_net(h_batch)
+                    # loss = loss_fn(outputs, labels.long().squeeze(1))
 
-            # accuracy = 100 * correct / total
-            # print(f"train acc : {accuracy}%")
+                    # valid_losses = loss.item()
+                    _, predicted = torch.max(outputs.data, 1)
+                    correct += (predicted == labels.squeeze().long()).sum().item()
+                    total += labels.size(0)
+
+                    # print(f"valid loss : {valid_losses}")
+
+            accuracy = 100 * correct / total
+            print(f"train acc : {accuracy}%")
         self.__consequent_net = consequent_net
 
     def clear(self):
@@ -621,30 +638,16 @@ class FnnDnn(NetBase):
         # get consequent net
         # transform h tensor to torch dataset
         test_dataset = DatasetH(x=h_all, y=data.Y)
-        test_loader = DataLoader(dataset=test_dataset, batch_size=64, shuffle=True)
+        test_loader = DataLoader(dataset=test_dataset, batch_size=n_smpl_tmp, shuffle=False)
         consequent_net = self.__consequent_net
 
-        loss_fn = nn.CrossEntropyLoss()
-
         consequent_net.eval()
-        correct = 0
-        total = 0
         y_hat = torch.empty(0)
         with torch.no_grad():
             for i, (h_batch, labels) in enumerate(test_loader):
                 outputs = consequent_net(h_batch)
-                # loss = loss_fn(outputs, labels.long().squeeze(1))
-                #
-                # valid_losses = loss.item()
-
                 _, y_hat_tmp = torch.max(outputs.data, 1)
-                correct += (y_hat_tmp == labels.squeeze().long()).sum().item()
-                total += labels.size(0)
                 y_hat = torch.cat((y_hat, y_hat_tmp.unsqueeze(0).float()), 1)
-                # print(f"valid loss : {valid_losses}")
-
-        accuracy = 100 * correct / total
-        print(f"train acc : {accuracy}%")
 
         return y_hat.t().double()
 

@@ -17,7 +17,7 @@ def neuron_run(param_config: ParamConfig, train_data: Dataset, test_data: Datase
     :return:
     """
     # get training model
-    net = param_config.net
+    net = param_config.model
 
     # trainning global method
     neuron_c = NeuronC(param_config.rules, param_config.h_computer,
@@ -212,7 +212,7 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     :return:
     """
     # get training model
-    net = param_config.net
+    net = param_config.model
 
     # trainning global method
     neuron_c = NeuronC(param_config.rules, param_config.h_computer,
