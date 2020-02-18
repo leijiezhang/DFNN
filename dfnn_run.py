@@ -212,7 +212,7 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     :return:
     """
     # get training model
-    net = param_config.net
+    net = param_config.model
 
     # trainning global method
     neuron_c = NeuronC(param_config.rules, param_config.h_computer,
@@ -346,7 +346,7 @@ def dfnn_rules_para(param_config: ParamConfig, train_data: Dataset, test_data: D
         param_config.n_rules = n_rules
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-            dfnn_para_ao(param_config, train_data, test_data)
+            dfnn_para(param_config, train_data, test_data)
 
         loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
         loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
