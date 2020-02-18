@@ -18,7 +18,7 @@ acc_d_test_arr = []
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
-    train_data, test_data = load_eeg_data(dataset_file, "eeg_dual")
+    train_data, test_data = load_eeg_data(dataset_file, "eeg_dual_old")
 
     param_config.log.debug(f"=====starting on {train_data.name}=======")
     loss_fun = None

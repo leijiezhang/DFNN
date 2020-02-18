@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import dfnn_rules_para
+from dfnn_run import dfnn_rules_para_ao
 from utils import load_eeg_data
 import torch
 import os
@@ -11,11 +11,11 @@ import os
 param_config = ParamConfig()
 param_config.config_parse('eegdual_config')
 
-para_mu_list = torch.linspace(-10, 10, 21)
+para_mu_list = torch.linspace(-10, 0, 11)
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
-n_rule_list = torch.arange(1, 26, 1)
+n_rule_list = torch.arange(4, 7, 1)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []
@@ -42,7 +42,7 @@ for i in torch.arange(len(param_config.dataset_list)):
         param_config.loss_fun = RMSELoss()
 
     acc_c_train_tsr, acc_c_test_tsr, acc_d_train_tsr, acc_d_test_tsr = \
-        dfnn_rules_para(param_config, train_data, test_data)
+        dfnn_rules_para_ao(param_config, train_data, test_data)
 
     # save all the output
     acc_c_train_list.append(acc_c_train_tsr)
@@ -111,7 +111,7 @@ data_save_dir = f"./results/eeg_dual"
 
 if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}/{param_config.model_name}.pt"
+data_save_file = f"{data_save_dir}/{param_config.model_name}_{param_config.n_rules}.pt"
 torch.save(save_dict, data_save_file)
 
 # # analysis the results
@@ -177,7 +177,7 @@ torch.save(save_dict, data_save_file)
 #     f"mAp of test data on distributed method:"
 #     f" {round(float(acc_d_test), 4)}/{round(float(acc_d_test_std), 4)}")
 #
-# data_save_dir = f"./results/eeg_dual/"
+# data_save_dir = f"./results/eeg_dual_old/"
 #
 # if not os.path.exists(data_save_dir):
 #     os.makedirs(data_save_dir)

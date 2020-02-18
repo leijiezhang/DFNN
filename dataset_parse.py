@@ -40,7 +40,7 @@ channel_list_all.append(channel_list)
 # # parse eeg dual dataset
 # for i in torch.arange(11):
 #     dataset_name = f"eegDual_subj{i+1}"
-#     sub_fold = "eeg_dual"
+#     sub_fold = "eeg_dual_old"
 #     eeg_dataset_parse(dataset_name, sub_fold)
 
 # # parse xiaofei dataset
