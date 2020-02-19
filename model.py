@@ -444,6 +444,39 @@ class MLP(nn.Module):
 #         return output_layer_foot
 
 
+# class ConsequentNet(nn.Module):
+#     def __init__(self, n_brunch, n_h_fea):
+#         super(ConsequentNet, self).__init__()
+#         self.n_brunch = n_brunch
+#         self.n_h_fea = n_h_fea  # number of H matrix features
+#
+#         n_out_layer1 = 1
+#         layer_head = []
+#         for i in torch.arange(n_brunch):
+#             layer_head.append(nn.Linear(n_h_fea, n_out_layer1))
+#         layer_foot = nn.Sequential(
+#             nn.Linear(n_brunch, 2),
+#             nn.ReLU(),
+#         )
+#         self.__layer_head = layer_head
+#         self.__layer_foot = layer_foot
+#
+#     def forward(self, x: torch.Tensor):
+#         layer_head = self.__layer_head
+#
+#         x = x.permute(1, 0, 2)
+#         input_layer_foot = torch.empty(x.shape[1], 0).float()
+#
+#         for i in torch.arange(x.shape[0]):
+#             x_sub = x[i, :, :].float()
+#             sub_net = layer_head[int(i)]
+#             out_layer_head = sub_net(x_sub)
+#             input_layer_foot = torch.cat((input_layer_foot, out_layer_head), 1)
+#
+#         output_layer_foot = self.__layer_foot(input_layer_foot)
+#         return output_layer_foot
+
+
 class ConsequentNet(nn.Module):
     def __init__(self, n_brunch, n_h_fea):
         super(ConsequentNet, self).__init__()
@@ -451,27 +484,40 @@ class ConsequentNet(nn.Module):
         self.n_h_fea = n_h_fea  # number of H matrix features
 
         n_out_layer1 = 1
-        layer_head = []
-        for i in torch.arange(n_brunch):
-            layer_head.append(nn.Linear(n_h_fea, n_out_layer1))
+        self.__layer_head_b1 = nn.Linear(n_h_fea, n_out_layer1)
+        self.__layer_head_b2 = nn.Linear(n_h_fea, n_out_layer1)
+        self.__layer_head_b3 = nn.Linear(n_h_fea, n_out_layer1)
+        self.__layer_head_b4 = nn.Linear(n_h_fea, n_out_layer1)
+        self.__layer_head_b5 = nn.Linear(n_h_fea, n_out_layer1)
+        self.__layer_head_b6 = nn.Linear(n_h_fea, n_out_layer1)
         layer_foot = nn.Sequential(
             nn.Linear(n_brunch, 2),
             nn.ReLU(),
         )
-        self.__layer_head = layer_head
+
         self.__layer_foot = layer_foot
 
     def forward(self, x: torch.Tensor):
-        layer_head = self.__layer_head
-
         x = x.permute(1, 0, 2)
-        input_layer_foot = torch.empty(x.shape[1], 0).float()
+        input_layer_foot = torch.zeros(x.shape[1], self.n_brunch).float()
 
-        for i in torch.arange(x.shape[0]):
-            x_sub = x[i, :, :].float()
-            sub_net = layer_head[int(i)]
-            out_layer_head = sub_net(x_sub)
-            input_layer_foot = torch.cat((input_layer_foot, out_layer_head), 1)
+        x_sub1 = x[0, :, :].float()
+        input_layer_foot[:, 0] = self.__layer_head_b1(x_sub1).squeeze()
+
+        x_sub2 = x[1, :, :].float()
+        input_layer_foot[:, 1] = self.__layer_head_b2(x_sub2).squeeze()
+
+        x_sub3 = x[2, :, :].float()
+        input_layer_foot[:, 2] = self.__layer_head_b3(x_sub3).squeeze()
+
+        x_sub4 = x[3, :, :].float()
+        input_layer_foot[:, 3] = self.__layer_head_b4(x_sub4).squeeze()
+
+        x_sub5 = x[4, :, :].float()
+        input_layer_foot[:, 4] = self.__layer_head_b5(x_sub5).squeeze()
+
+        x_sub6 = x[5, :, :].float()
+        input_layer_foot[:, 5] = self.__layer_head_b6(x_sub6).squeeze()
 
         output_layer_foot = self.__layer_foot(input_layer_foot)
         return output_layer_foot
