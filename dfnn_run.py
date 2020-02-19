@@ -1,7 +1,8 @@
 from param_config import ParamConfig
 from dataset import Dataset, DatasetNN
 from torch.utils.data import DataLoader
-from neuron import NeuronC, NeuronD, NeuronDC, NeuronDN
+from neuron import NeuronC, NeuronD
+from math_utils import mapminmax
 # from svmutil import *
 import torch.nn as nn
 import torch
@@ -211,6 +212,13 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     :param test_data: test dataset
     :return:
     """
+    # normalize the dataset
+    n_train_smpl = train_data.X.shape[0]
+    x_all = torch.cat((train_data.X, test_data.X), 0)
+    x_all_norm = mapminmax(x=x_all)
+    train_data.X = x_all_norm[0:n_train_smpl, :]
+    test_data.X = x_all_norm[n_train_smpl::, :]
+
     # get training model
     net = param_config.model
 
@@ -411,6 +419,29 @@ def dfnn_kfolds(param_config: ParamConfig, dataset: Dataset):
     for k in torch.arange(param_config.n_kfolds):
         param_config.patition_strategy.set_current_folds(k)
         train_data, test_data = dataset.get_run_set()
+
+        # if the dataset is like a eeg data, which has trails hold sample blocks
+        if dataset.X.shape.__len__() == 3:
+            # reform training dataset
+            y = torch.empty(0, 1).double()
+            x = torch.empty(0, dataset.X.shape[2]).double()
+            for ii in torch.arange(train_data.Y.shape[0]):
+                x = torch.cat((x, train_data.X[ii]), 0)
+                size_smpl_ii = train_data.X[ii].shape[0]
+                y_tmp = train_data.Y[ii].repeat(size_smpl_ii, 1)
+                y = torch.cat((y, y_tmp), 0)
+            train_data = Dataset(train_data.name, x, y, train_data.task)
+
+            # reform test dataset
+            y = torch.empty(0, 1).double()
+            x = torch.empty(0, dataset.X.shape[2]).double()
+            for ii in torch.arange(test_data.Y.shape[0]):
+                x = torch.cat((x, test_data.X[ii]), 0)
+                size_smpl_ii = test_data.X[ii].shape[0]
+                y_tmp = test_data.Y[ii].repeat(size_smpl_ii, 1)
+                y = torch.cat((y, y_tmp), 0)
+            test_data = Dataset(test_data.name, x, y, test_data.task)
+
         param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
         train_loss_c, test_loss_c, cfnn_train_loss, cfnn_test_loss = \
             hdfnn_run(param_config, train_data, test_data)

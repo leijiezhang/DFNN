@@ -7,8 +7,8 @@ import time
 import csv
 
 
-def load_data(dataset_str):
-    dir_dataset = f"./datasets/{dataset_str}.pt"
+def load_data(dataset_str, sub_fold):
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_str}.pt"
 
     load_data = torch.load(dir_dataset)
     dataset_name = load_data['name']
@@ -29,7 +29,7 @@ def load_data(dataset_str):
         seperator = load_data['seperator']
         dataset.seperator = seperator
 
-    dataset.normalize(-1, 1)
+    # dataset.normalize(-1, 1)
     return dataset
 
 
@@ -88,13 +88,14 @@ def load_eeg_data(dataset_str, sub_fold):
     return train_dataset, test_dataset
 
 
-def dataset_parse(dataset_name):
+def dataset_parse(dataset_name, sub_fold):
     """
     todo: parse dataset from .mat to .pt
     :param dataset_name:
+    :param sub_fold:
     :return:
     """
-    dir_dataset = f"./datasets/{dataset_name}.mat"
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_name}.mat"
     load_data = sio.loadmat(dir_dataset)
     dataset_name = load_data['name'][0]
     x_orig = load_data['X']
@@ -123,7 +124,7 @@ def dataset_parse(dataset_name):
     else:
         data_save['Y'] = y.unsqueeze(1)
 
-    dir_dataset = f"./datasets/{dataset_name}.pt"
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)
 
 

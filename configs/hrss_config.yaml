@@ -1,7 +1,7 @@
 model: 'hdfnn_ao' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
 
 n_run: 1
-n_kfolds: 10
+n_kfolds: 5
 
 n_agents: 5
 n_agents_list: []
