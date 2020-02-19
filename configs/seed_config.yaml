@@ -1,4 +1,4 @@
-model: 'hdfnn' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
+model: 'hdfnn_ao' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
 
 n_run: 1
 n_kfolds: 3
@@ -26,8 +26,11 @@ dataset_list_all:
    'kc_house', 'motor_temperature', 'quake', 'skills',
    'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
 
-mu_current: 10
+mu_current: 0.1
 mu_list:
+  [0.0001, 0.001, 0.01, 0.1]
+mu1_current: 0.1
+mu1_list:
   [0.0001, 0.001, 0.01, 0.1]
 
 rho: 1
@@ -40,7 +43,7 @@ rules: 'kmeans' # 'kmeans' 'fuzzyc'
 patition_strategy: 'kmeans'
 
 #feature splitor
-feature_seperator: 'no_seperate' # 'slice_window' 'random_pick' 'no_seperate'
+feature_seperator: 'slice_window' # 'slice_window' 'random_pick' 'no_seperate'
 window_size: 5 # 5 bands
 n_level: 2
 # while feature_seperator is slice_window, initiate following parameters
