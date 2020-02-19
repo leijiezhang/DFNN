@@ -33,61 +33,6 @@ def load_data(dataset_str, sub_fold):
     return dataset
 
 
-def load_eeg_data(dataset_str, sub_fold):
-    dir_dataset = f"./datasets/{sub_fold}/{dataset_str}.pt"
-
-    load_data = torch.load(dir_dataset)
-
-    dataset_name = load_data['name']
-    x_train: torch.Tensor = load_data['x_train']
-    y_train: torch.Tensor = load_data['y_train']
-
-    x_test: torch.Tensor = load_data['x_test']
-    y_test: torch.Tensor = load_data['y_test']
-
-    task = load_data['task']
-
-    # normalize dataset
-    x = torch.cat((x_train, x_test), 0)
-    y = torch.cat((y_train, y_test), 0)
-
-    dataset = Dataset(dataset_name, x, y, task)
-    dataset.normalize(-1, 1)
-    n_train = x_train.shape[0]
-    n_test = x_test.shape[0]
-    x = dataset.X
-    x_train = x[0:n_train, :]
-    x_test = x[n_train:n_train+n_test, :]
-
-    if len(y_train.shape) == 1:
-        y_train = y_train.unsqueeze(1)
-
-    train_dataset = Dataset(dataset_name, x_train, y_train, task)
-
-    if 'y_train_r' in load_data:
-        y_r: torch.Tensor = load_data['y_train_r']
-        train_dataset.Y_r = y_r
-
-    if 'seperator' in load_data:
-        seperator = load_data['seperator']
-        train_dataset.seperator = seperator
-    # test dataset
-    if len(y_test.shape) == 1:
-        y_test = y_test.unsqueeze(1)
-
-    test_dataset = Dataset(dataset_name, x_test, y_test, task)
-
-    if 'y_test_r' in load_data:
-        y_r: torch.Tensor = load_data['y_test_r']
-        test_dataset.Y_r = y_r
-
-    if 'seperator' in load_data:
-        seperator = load_data['seperator']
-        test_dataset.seperator = seperator
-
-    return train_dataset, test_dataset
-
-
 def dataset_parse(dataset_name, sub_fold):
     """
     todo: parse dataset from .mat to .pt

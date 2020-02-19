@@ -556,7 +556,7 @@ def dfnn_rules_para_kfold(param_config: ParamConfig, dataset: Dataset):
     n_rule_list = param_config.n_rules_list
     for i in torch.arange(n_rule_list.shape[0]):
         n_rules = n_rule_list[int(i)]
-        param_config.log.info(f"running at rule number: {n_rules}")
+        param_config.log.error(f"running at rule number: {n_rules}")
         param_config.n_rules = n_rules
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \

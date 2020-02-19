@@ -30,7 +30,7 @@ acc_d_test_list = []
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
-    dataset = load_data(dataset_file)
+    dataset = load_data(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
@@ -103,7 +103,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     save_dict["acc_d_train_arr"] = acc_d_train_arr
     save_dict["acc_d_test_arr"] = acc_d_test_arr
 
-    data_save_dir = f"./results/hrss"
+    data_save_dir = f"./results/{param_config.dataset_name}"
 
     if not os.path.exists(data_save_dir):
         os.makedirs(data_save_dir)

@@ -26,6 +26,7 @@ class ParamConfig(object):
 
         self.dataset_list_all = []
         self.dataset_list = ['CASP']
+        self.dataset_name = 'hrss'
 
         # set mu
         self.para_mu_current = 0
@@ -70,6 +71,7 @@ class ParamConfig(object):
 
         self.dataset_list_all = config_content['dataset_list_all']
         self.dataset_list = config_content['dataset_list']
+        self.dataset_name = config_content['dataset_name']
 
         self.para_mu_current = config_content['mu_current']
         self.para_mu_list = config_content['mu_list']
