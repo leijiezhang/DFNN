@@ -11,7 +11,7 @@ import os
 param_config = ParamConfig()
 param_config.config_parse('hrss_config')
 
-para_mu_list = torch.linspace(-10, 10, 21)
+para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 

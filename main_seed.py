@@ -12,7 +12,7 @@ n_channel_list = [4, 6, 9, 12]
 param_config = ParamConfig()
 param_config.config_parse('seed_config')
 
-para_mu_list = torch.linspace(-10, 0, 11)
+para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
@@ -68,9 +68,6 @@ dataset_list_4 = ['seed_c4_e1_subj1', 'seed_c4_e1_subj2', 'seed_c4_e1_subj3', 's
                   'seed_c4_e3_subj11', 'seed_c4_e3_subj12', 'seed_c4_e3_subj13', 'seed_c4_e3_subj14',
                   'seed_c4_e3_subj15']
 dataset_list = [dataset_list_4, dataset_list_6, dataset_list_9, dataset_list_12]
-
-para_mu_list = torch.linspace(-10, 10, 21)
-param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 
 for jj in torch.arange(len(n_channel_list)):
     n_channel = n_channel_list[int(jj)]
