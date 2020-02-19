@@ -1,4 +1,4 @@
-model: 'hdfnn_dnn' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
+model: 'hdfnn_ao' # 'base' 'hdfnn' 'hdfnn_fn' 'hdfnn_ao' 'hdfnn_dnn'
 
 n_run: 1
 n_kfolds: 10
