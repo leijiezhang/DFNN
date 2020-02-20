@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import dfnn_rules_para_ao
-from utils import load_eeg_data
+from utils import load_data
 import torch
 import os
 
@@ -85,7 +85,7 @@ for jj in torch.arange(len(n_channel_list)):
     for i in torch.arange(len(param_config.dataset_list)):
         dataset_file = param_config.get_cur_dataset(int(i))
         # load dataset
-        train_data, test_data = load_eeg_data(dataset_file, f"seed/channel{n_channel}")
+        train_data, test_data = load_data(dataset_file, f"seed/channel{n_channel}")
 
         param_config.log.debug(f"=====starting on {train_data.name}=======")
         loss_fun = None

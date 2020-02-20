@@ -91,20 +91,21 @@ for i in torch.arange(len(param_config.dataset_list)):
         f"mAp of test data on distributed method:"
         f" {round(float(acc_d_test), 4)}/{round(float(acc_d_test_std), 4)}")
 
-    save_dict = dict()
-    save_dict["acc_c_train_list"] = acc_c_train_list
-    save_dict["acc_c_test_list"] = acc_c_test_list
-    save_dict["acc_d_train_list"] = acc_d_train_list
-    save_dict["acc_d_test_list"] = acc_d_test_list
+save_dict = dict()
+save_dict["acc_c_train_list"] = acc_c_train_list
+save_dict["acc_c_test_list"] = acc_c_test_list
+save_dict["acc_d_train_list"] = acc_d_train_list
+save_dict["acc_d_test_list"] = acc_d_test_list
 
-    save_dict["acc_c_train_arr"] = acc_c_train_arr
-    save_dict["acc_c_test_arr"] = acc_c_test_arr
-    save_dict["acc_d_train_arr"] = acc_d_train_arr
-    save_dict["acc_d_test_arr"] = acc_d_test_arr
+save_dict["acc_c_train_arr"] = acc_c_train_arr
+save_dict["acc_c_test_arr"] = acc_c_test_arr
+save_dict["acc_d_train_arr"] = acc_d_train_arr
+save_dict["acc_d_test_arr"] = acc_d_test_arr
 
-    data_save_dir = f"./results/{param_config.dataset_name}"
+data_save_dir = f"./results/{param_config.dataset_name}"
 
-    if not os.path.exists(data_save_dir):
-        os.makedirs(data_save_dir)
-    data_save_file = f"{data_save_dir}/{param_config.model_name}_{param_config.n_rules}.pt"
-    torch.save(save_dict, data_save_file)
+if not os.path.exists(data_save_dir):
+    os.makedirs(data_save_dir)
+data_save_file = f"{data_save_dir}/{param_config.model_name}_{param_config.n_rules}.pt"
+torch.save(save_dict, data_save_file)
+
