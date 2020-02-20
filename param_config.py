@@ -155,8 +155,11 @@ class ParamConfig(object):
             window_size = config_content['window_size']
             step = config_content['step']
             n_level = config_content['n_level']
-            fea_seperator.set_seperator_by_slice_window(window_size, step,
-                                                        n_level)
+            fea_seperator.set_seperator_by_slice_window(window_size, step, n_level)
+        elif seperator_type == 'stride_window':
+            stride_len = config_content['stride_len']
+            n_level = config_content['n_level']
+            fea_seperator.set_seperator_by_stride_window(stride_len, n_level)
         elif seperator_type == 'random_pick':
             window_size = config_content['window_size']
             n_repeat = config_content['n_repeat_select']

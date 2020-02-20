@@ -33,7 +33,6 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
-    dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
     param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':

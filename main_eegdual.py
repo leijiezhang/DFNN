@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import dfnn_rules_para_kfold
-from utils import load_data, Logger
+from dfnn_run import dfnn_rules_para_kfold_ao
+from utils import load_data
 import torch
 import os
 
@@ -33,7 +33,6 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
-    dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
     param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':
@@ -44,7 +43,7 @@ for i in torch.arange(len(param_config.dataset_list)):
         param_config.loss_fun = RMSELoss()
 
     acc_c_train_tsr, acc_c_test_tsr, acc_d_train_tsr, acc_d_test_tsr = \
-        dfnn_rules_para_kfold(param_config, dataset)
+        dfnn_rules_para_kfold_ao(param_config, dataset)
 
     acc_c_train_list.append(acc_c_train_tsr)
     acc_c_test_list.append(acc_c_test_tsr)

@@ -35,6 +35,27 @@ class FeaSeperator(object):
         seperator = slide_window(n_fea, window_size, step, n_level)
         self.__seperator = seperator
 
+    def set_seperator_by_stride_window(self, stride_len, n_level=2):
+        """set seperator using slice window"""
+        n_fea = 18
+        if self.data_name.find('HRSS') != -1:
+            n_fea = 18
+        elif self.data_name.find('seed_c62') != -1:
+            n_fea = 31
+        elif self.data_name.find('seed_c12') != -1:
+            n_fea = 60
+        elif self.data_name.find('seed_c9') != -1:
+            n_fea = 45
+        elif self.data_name.find('seed_c6') != -1:
+            n_fea = 30
+        elif self.data_name.find('seed_c4') != -1:
+            n_fea = 20
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 24
+
+        seperator = stride_window(n_fea, stride_len, n_level)
+        self.__seperator = seperator
+
     def set_seperator_by_random_pick(self, window_size, n_repeat=2, n_level=2):
         """set seperator using slice window"""
         n_fea = 18
@@ -131,6 +152,35 @@ def slide_window(n_fea, window_size, step=1, n_level=2):
             fea_idx_real = fea_idx_real.long()
             seperator_sub.append(fea_idx_real)
             idx_sub = idx_sub + step
+        n_fea_tmp = len(seperator_sub)
+        seperator.append(seperator_sub)
+        level_idx = level_idx + 1
+    return seperator
+
+
+def stride_window(n_fea, stride_len, n_level=2):
+    """
+    using stride instead of slide window to get the index of feature seperators
+    :param n_fea:
+    :param stride_len:
+    :param n_level:
+    :return:
+    """
+    n_fea_tmp = n_fea
+    level_idx = 1
+    seperator = []
+
+    while True:
+        idx_sub = 0
+        seperator_sub = []
+        if not stride_len < n_fea_tmp or not level_idx < n_level:
+            seperator.append([])
+            break
+        while idx_sub < stride_len:
+            fea_idx = torch.arange(idx_sub, n_fea, stride_len)
+            fea_idx_real = fea_idx.long()
+            seperator_sub.append(fea_idx_real)
+            idx_sub = idx_sub + 1
         n_fea_tmp = len(seperator_sub)
         seperator.append(seperator_sub)
         level_idx = level_idx + 1
