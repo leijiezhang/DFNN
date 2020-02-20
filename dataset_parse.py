@@ -37,12 +37,12 @@ channel_list_all.append(channel_list)
 #         eeg_dataset_parse(dataset_name, sub_fold)
 
 
-# parse eeg dual dataset
-for i in torch.arange(11):
-    dataset_name = f"eegDual_subj{i+1}"
-    sub_fold = "eeg_dual"
-    # eeg_dataset_parse(dataset_name, sub_fold)
-    dataset_parse(dataset_name, sub_fold)
+# # parse eeg dual dataset
+# for i in torch.arange(11):
+#     dataset_name = f"eegDual_subj{i+1}"
+#     sub_fold = "eeg_dual"
+#     # eeg_dataset_parse(dataset_name, sub_fold)
+#     dataset_parse(dataset_name, sub_fold)
 
 # # parse xiaofei dataset
 # for i in torch.arange(8),
@@ -56,8 +56,8 @@ for i in torch.arange(11):
 #         for j in torch.arange(15):
 #             seed_dataset_parse(len(channel_list_all[int(i)]), int(k+1), int(j+1))
 
-# # parse eeg sleep dataset
-# for i in torch.arange(5):
-#     dataset_name = f"eegSleep_subj{i+1}"
-#     sub_fold = "eeg_sleep"
-#     eeg_dataset_parse(dataset_name, sub_fold)
+# parse eeg sleep dataset
+for i in torch.arange(5):
+    dataset_name = f"eegSleep_subj{i+1}"
+    sub_fold = "eeg_sleep"
+    dataset_parse(dataset_name, sub_fold)
