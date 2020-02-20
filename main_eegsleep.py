@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import dfnn_rules_para_ao
+from dfnn_run import dfnn_rules_para_kfold_ao
 from utils import load_data
 import torch
 import os
@@ -15,7 +15,7 @@ para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
-n_rule_list = torch.arange(6, 11, 1)
+n_rule_list = torch.arange(1, 21, 1)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []
@@ -30,14 +30,12 @@ acc_d_test_list = []
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
-    train_data, test_data = load_data(dataset_file, "eeg_sleep")
-    train_data, test_data = load_data(dataset_file, "eeg_sleep")
     dataset = load_data(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
-    param_config.log.debug(f"=====starting on {train_data.name}=======")
+    param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
-    if train_data.task == 'C':
+    if dataset.task == 'C':
         param_config.log.war(f"=====Mission: Classification=======")
         param_config.loss_fun = LikelyLoss()
     else:

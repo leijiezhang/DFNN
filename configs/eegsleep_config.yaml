@@ -9,6 +9,7 @@ n_agents_list: []
 n_rules: 3
 n_rules_list: []
 
+dataset_name: 'eeg_sleep' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
   ['eegSleep_subj1', 'eegSleep_subj2', 'eegSleep_subj3', 'eegSleep_subj4', 'eegSleep_subj5']
 dataset_list_all:
