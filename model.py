@@ -328,7 +328,7 @@ class FnnAO(NetBase):
 
             y_hap_tmp = w_y_h.mm(w_y)
 
-            loss_tmp = mean_squared_error(y_tmp, y_hap_tmp)
+            loss_tmp = torch.norm(y_tmp-y_hap_tmp)
             diff = abs(loss_tmp - loss)
             loss = loss_tmp
             print(f"Loss of AO: {loss}")
