@@ -3,6 +3,7 @@ from dataset import Dataset, DatasetNN
 from torch.utils.data import DataLoader
 from neuron import NeuronC, NeuronD
 from math_utils import mapminmax
+from sklearn.metrics import mean_squared_error
 # from svmutil import *
 import torch.nn as nn
 import torch
@@ -241,6 +242,8 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
         param_config.log.info(f"Accuracy of training data on centralized method: {train_loss_c}")
         param_config.log.info(f"Accuracy of test data on centralized method: {test_loss_c}")
     else:
+        train_loss_c = mean_squared_error(train_data.Y, y_hat_train)
+        test_loss_c = mean_squared_error(test_data.Y, y_hat_test)
         param_config.log.info(f"loss of training data on centralized method: {train_loss_c}")
         param_config.log.info(f"loss of test data on centralized method: {test_loss_c}")
 
@@ -263,6 +266,8 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
         param_config.log.info(f"Accuracy of training data on distributed method: {cfnn_train_loss}")
         param_config.log.info(f"Accuracy of test data on distributed method: {cfnn_test_loss}")
     else:
+        cfnn_train_loss = mean_squared_error(train_data.Y, y_hat_train)
+        cfnn_test_loss = mean_squared_error(test_data.Y, y_hat_test)
         param_config.log.info(f"loss of training data on distributed method: {cfnn_train_loss}")
         param_config.log.info(f"loss of test data on distributed method: {cfnn_test_loss}")
 

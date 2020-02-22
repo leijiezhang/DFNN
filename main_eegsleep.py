@@ -63,13 +63,13 @@ for i in torch.arange(len(param_config.dataset_list)):
     acc_c_test = loss_c_test_mean_mtrx.max()
     best_c_mask = torch.eq(loss_c_test_mean_mtrx, acc_c_test)
 
-    acc_c_train = loss_c_train_mean_mtrx[best_c_mask]
+    acc_c_train = loss_c_train_mean_mtrx[best_c_mask].max()
     acc_c_train_std = loss_c_train_std_mtrx[best_c_mask]
     acc_c_test_std = loss_c_test_std_mtrx[best_c_mask]
 
     acc_d_test = loss_d_test_mean_mtrx.max()
     best_d_mask = torch.eq(loss_d_test_mean_mtrx, acc_d_test)
-    acc_d_train = loss_d_train_mean_mtrx[best_d_mask]
+    acc_d_train = loss_d_train_mean_mtrx[best_d_mask].max()
     acc_d_train_std = loss_d_train_std_mtrx[best_d_mask]
     acc_d_test_std = loss_d_test_std_mtrx[best_d_mask]
 
