@@ -11,11 +11,11 @@ import os
 param_config = ParamConfig()
 param_config.config_parse('eegdual_config')
 
-para_mu_list = torch.arange(-10, 1, 1).double()
-param_config.para_mu_list = torch.pow(2, para_mu_list).double()
-param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
+para_mu_list = torch.arange(-3, 3, 1).double()
+param_config.para_mu_list = torch.pow(10, para_mu_list).double()
+param_config.para_mu1_list = torch.pow(10, para_mu_list).double()
 
-n_rule_list = torch.arange(1, 11, 1)
+n_rule_list = torch.arange(15, 16, 1)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []
