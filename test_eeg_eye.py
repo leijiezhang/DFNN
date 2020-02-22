@@ -8,7 +8,7 @@ import torch
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-param_config.config_parse('hrss_config')
+param_config.config_parse('eegeye_config')
 
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))

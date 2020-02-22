@@ -6,14 +6,12 @@ n_kfolds: 5
 n_agents: 5
 n_agents_list: []
 
-n_rules: 5
+n_rules: 10
 n_rules_list: []
 
-dataset_name: 'eeg_dual' # each kind of dataset has a same prefix name, dataset is the prefix
+dataset_name: 'ethylene' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
-  ['eegDual_subj1', 'eegDual_subj2', 'eegDual_subj3', 'eegDual_subj4', 'eegDual_subj5',
-  'eegDual_subj6', 'eegDual_subj7', 'eegDual_subj8', 'eegDual_subj9', 'eegDual_subj10',
-  'eegDual_subj11']
+  ['ethylene_co']
 dataset_list_all:
   ['abalone', 'airfoil', 'bikesharing',
    'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',
@@ -21,13 +19,12 @@ dataset_list_all:
    'kc_house', 'motor_temperature', 'quake', 'skills',
    'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
 
-mu_current: 1
+mu_current: 0.1
 mu_list:
   [0.0001, 0.001, 0.01, 0.1]
-mu1_current: 1
+mu1_current: 0.01
 mu1_list:
   [0.0001, 0.001, 0.01, 0.1]
-
 rho: 1
 
 #tool functions
@@ -39,7 +36,7 @@ patition_strategy: 'kmeans'
 
 #feature splitor
 feature_seperator: 'slice_window' # 'stride_window' 'slice_window' 'random_pick' 'no_seperate'
-window_size: 4 # 4 bands
+window_size: 4
 n_level: 2
 # while using stride_window, initiate following parameters
 stride_len: 6 #6 channel

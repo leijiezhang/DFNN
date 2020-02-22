@@ -46,10 +46,10 @@ def dataset_parse(dataset_name, sub_fold):
     x_orig = load_data['X']
     y_orig = load_data['Y']
     x = torch.tensor(x_orig).double()
-    y_tmp = []
-    for i in torch.arange(len(y_orig)):
-        y_tmp.append(float(y_orig[i]))
-    y = torch.tensor(y_tmp).double()
+    # y_tmp = []
+    # for i in torch.arange(len(y_orig)):
+    #     y_tmp.append(float(y_orig[i, :]))
+    y = torch.tensor(y_orig).double()
     task = load_data['task'][0]
     data_save = dict()
     data_save['task'] = task
@@ -67,7 +67,7 @@ def dataset_parse(dataset_name, sub_fold):
         data_save['Y_r'] = y_c
         data_save['Y'] = y
     else:
-        data_save['Y'] = y.unsqueeze(1)
+        data_save['Y'] = y
 
     dir_dataset = f"./datasets/{sub_fold}/{dataset_name}.pt"
     torch.save(data_save, dir_dataset)

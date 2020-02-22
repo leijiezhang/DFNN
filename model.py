@@ -331,7 +331,7 @@ class FnnAO(NetBase):
             loss_tmp = mean_squared_error(y_tmp, y_hap_tmp)
             diff = abs(loss_tmp - loss)
             loss = loss_tmp
-            # print(f"Loss of AO: {loss}")
+            print(f"Loss of AO: {loss}")
 
         self.__w_x = w_x
 

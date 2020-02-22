@@ -10,6 +10,7 @@ import os
 # init the parameters
 param_config = ParamConfig()
 param_config.config_parse('eegdual_config')
+# param_config.dataset_list = ['eegDual_subj_all']
 
 acc_c_train_arr = torch.empty(0, param_config.n_kfolds).double()
 acc_c_test_arr = torch.empty(0, param_config.n_kfolds).double()
