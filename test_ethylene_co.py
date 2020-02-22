@@ -2,13 +2,14 @@ from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import dfnn_kfolds
 from utils import load_data
+from math_utils import mapminmax
 import torch
 
 
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-param_config.config_parse('hrss_config')
+param_config.config_parse('ethylene_co_config')
 
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
@@ -25,6 +26,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     else:
         param_config.log.war(f"=====Mission: Regression=======")
         param_config.loss_fun = RMSELoss()
+        dataset.Y = mapminmax(dataset.Y)
 
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test, loss_curve = \
     #     dfnn_ite_rules_mu(15, param_config, dataset)
