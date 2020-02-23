@@ -59,13 +59,13 @@ plt.legend(['lei'])
 
 print('lei')
 
-train_losses = []
-
-x = torch.linspace(1, len(train_losses)+1, len(train_losses)).numpy()
-y = train_losses
+train_loss_list = []
+import matplotlib.pyplot as plt
+x = torch.linspace(1, len(train_loss_list)+1, len(train_loss_list)).numpy()
+y = train_loss_list
 plt.title('Result Analysis')
-plt.plot(x, train_losses, color='green', label='loss value')
-plt.plot(x, test_acys, color='red', label='training accuracy')
+plt.plot(x, y, color='green', label='loss value')
+# plt.plot(x, test_acys, color='red', label='training accuracy')
 plt.legend()  # 显示图例
 
 plt.xlabel('iteration times')
