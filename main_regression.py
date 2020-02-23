@@ -8,6 +8,7 @@ from dfnn_run import dfnn_kfolds
 from sklearn.metrics import mean_squared_error
 from utils import load_data
 from math_utils import mapminmax
+from sklearn.svm import SVR
 import torch
 
 
@@ -41,19 +42,19 @@ for i in torch.arange(len(param_config.dataset_list)):
     train_data.X = x_all_norm[0:n_train_smpl, :]
     test_data.X = x_all_norm[n_train_smpl::, :]
 
-    # ========Lasso回归========
-    model = Lasso(alpha=0.01)  # 调节alpha可以实现对拟合的程度
-    # model = LassoCV()  # LassoCV自动调节alpha可以实现选择最佳的alpha。
-    # model = LassoLarsCV()  # LassoLarsCV自动调节alpha可以实现选择最佳的alpha
-    model.fit(train_data.X, train_data.Y)  # 线性回归建模
-    print('系数矩阵:\n', model.coef_)
-    print('线性回归模型:\n', model)
-    # print('最佳的alpha：',model.alpha_)  # 只有在使用LassoCV、LassoLarsCV时才有效
-    # 使用模型预测
-    predicted = model.predict(test_data.X)
-    loss_tmp = mean_squared_error(test_data.Y, torch.tensor(predicted))
-    print(f"Lasso regression: {loss_tmp}")
-
+    # # ========Lasso回归========
+    # model = Lasso(alpha=0.01)  # 调节alpha可以实现对拟合的程度
+    # # model = LassoCV()  # LassoCV自动调节alpha可以实现选择最佳的alpha。
+    # # model = LassoLarsCV()  # LassoLarsCV自动调节alpha可以实现选择最佳的alpha
+    # model.fit(train_data.X, train_data.Y)  # 线性回归建模
+    # print('系数矩阵:\n', model.coef_)
+    # print('线性回归模型:\n', model)
+    # # print('最佳的alpha：',model.alpha_)  # 只有在使用LassoCV、LassoLarsCV时才有效
+    # # 使用模型预测
+    # predicted = model.predict(test_data.X)
+    # loss_tmp = mean_squared_error(test_data.Y, torch.tensor(predicted))
+    # print(f"Lasso regression: {loss_tmp}")
+    #
     # lr = LinearRegression()
     # lr.fit(train_data.X, train_data.Y)  # 训练
     # print("预测的决定系数R平方:", lr.score(train_data.X, train_data.Y))
@@ -64,7 +65,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     #
     # loss_tmp = mean_squared_error(test_data.Y, torch.tensor(y_predict))
     # print(f"linear regression: {loss_tmp}")
-
+    #
     # # ========岭回归========
     # model = Ridge(alpha=0.5)
     # model = RidgeCV(alphas=[0.1, 1.0, 10.0])  # 通过RidgeCV可以设置多个参数值，算法使用交叉验证获取最佳参数值
@@ -76,7 +77,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     # predicted = model.predict(test_data.X)
     # loss_tmp = mean_squared_error(test_data.Y, torch.tensor(predicted))
     # print(f"Ridge regression: {loss_tmp}")
-
+    #
     # polynomial = PolynomialFeatures(degree=3)  # 二次多项式
     # x_transformed = polynomial.fit_transform(test_data.X)  # x每个数据对应的多项式系数
     #
@@ -85,4 +86,11 @@ for i in torch.arange(len(param_config.dataset_list)):
     #
     # xx_transformed = polynomial.fit_transform(test_data.X)  # 把训练好X值的多项式特征实例应用到一系列点上,形成矩阵
     # yy = poly_linear_model.predict(xx_transformed)
-    print(f"polynomial regression: {yy}")
+    # loss_tmp = mean_squared_error(test_data.Y, torch.tensor(yy))
+    # print(f"polynomial regression: {loss_tmp}")
+
+    cls = SVR(C=1.0, epsilon=0.2)
+    cls.fit(train_data.X.numpy(), train_data.Y.squeeze().numpy())
+    predicted = cls.predict(test_data.X)
+    loss_tmp = mean_squared_error(test_data.Y, torch.tensor(predicted))
+    print(f"svr regression: {loss_tmp}")

@@ -303,7 +303,7 @@ class FnnAO(NetBase):
         # start AO optimization
         diff = 1
         loss = 100
-        run_th = 0.0001
+        run_th = 0.01
         while diff > run_th:
             # fix  w_y update w_x
             for i in torch.arange(n_branch):
