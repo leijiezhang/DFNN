@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from math_utils import cal_fc_w
+import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import abc
 
@@ -295,43 +296,70 @@ class FnnAO(NetBase):
         self.set_neuron_tree(rules_tree)
 
         # set bottom level AO
-        w_x = torch.rand(n_branch, n_h).double()
-        w_y = torch.rand(n_branch, 1).double()
-        w_y_h = torch.rand(n_smpl_tmp, n_branch).double()
-        w_x_h = h_all.clone()
+        n_midle_output = 4
+        w_x = torch.rand(n_branch, n_midle_output, n_h).double()
+        w_y = torch.rand(n_branch * n_midle_output, 1).double()
 
         # start AO optimization
         diff = 1
         loss = 100
-        run_th = 0.0001
-        while diff > run_th:
+        train_loss_list = []
+        run_th = 0.00001
+        n_epoch = 30
+        run_epoch = 1
+
+        h_brunch_all = torch.empty(n_smpl_tmp, 0).double()
+        for i in torch.arange(n_branch):
+            h_brunch = h_all[i, :, :].repeat(1, n_midle_output)
+            h_brunch_all = torch.cat((h_brunch_all, h_brunch), 1)
+
+        while diff > run_th and run_epoch <= n_epoch:
             # fix  w_y update w_x
-            for i in torch.arange(n_branch):
-                w_x_h[i, :, :] = w_y[i] * h_all[i, :, :]
+            w_y_brunch_all = w_y.repeat(1, n_h)
+            w_y_brunch_all = w_y_brunch_all.reshape(1, -1)
 
-            w_x_h_cal = w_x_h.permute(1, 0, 2)
-            w_x_h_cal = w_x_h_cal.reshape(n_smpl_tmp, -1)
-            w_x_optimal = torch.inverse(w_x_h_cal.t().mm(w_x_h_cal) + para_mu * torch.eye(w_x_h_cal.shape[1]).double()) \
-                .mm(w_x_h_cal.t().mm(data.Y))
+            w_x_h_brunch = torch.mul(h_brunch_all, w_y_brunch_all)
+            w_x_brunch = torch.inverse(w_x_h_brunch.t().mm(w_x_h_brunch) +
+                                       para_mu * torch.eye(w_x_h_brunch.shape[1])
+                                       .double()).mm(w_x_h_brunch.t().mm(data.Y))
+            w_x_cal = w_x_brunch.squeeze().reshape(n_branch, n_midle_output * n_h)
 
-            w_x = w_x_optimal.reshape(n_branch, n_h)
+            w_x = w_x_cal.reshape(n_branch, n_midle_output, n_h)
 
             # fix  w_x update w_y
+            w_y_h_cal = torch.empty(n_smpl_tmp, 0).double()
             for i in torch.arange(n_branch):
-                w_y_h[:, i] = h_all[i, :, :].mm(w_x[i, :].unsqueeze(1)).squeeze()
+                w_y_h_brunch = h_all[i, :, :].mm(w_x[i, :, :].t()).squeeze()
+                w_y_h_cal = torch.cat((w_y_h_cal, w_y_h_brunch), 1)
 
-            w_y = torch.inverse(w_y_h.t().mm(w_y_h) + para_mu1 * torch.eye(w_y_h.shape[1]).double()) \
-                .mm(w_y_h.t().mm(data.Y))
+                w_y = torch.inverse(w_y_h_cal.t().mm(w_y_h_cal) + para_mu1 * torch.eye(w_y_h_cal.shape[1])
+                                    .double()).mm(w_y_h_cal.t().mm(data.Y))
 
             # compute loss
             y_tmp = data.Y
 
-            y_hap_tmp = w_y_h.mm(w_y)
+            y_hap_tmp = w_y_h_cal.mm(w_y)
 
-            loss_tmp = mean_squared_error(y_tmp, y_hap_tmp)
+            loss_tmp = abs(torch.sum(y_tmp - y_hap_tmp))
+            # loss_tmp = torch.norm(y_tmp - y_hap_tmp)
+            # loss_tmp = mean_squared_error(y_tmp, y_hap_tmp)
             diff = abs(loss_tmp - loss)
             loss = loss_tmp
-            print(f"Loss of AO: {loss}")
+            train_loss_list.append(loss)
+
+            run_epoch = run_epoch + 1
+            # print(f"Loss of AO: {loss}")
+
+        x = torch.linspace(1, len(train_loss_list) + 1, len(train_loss_list)).numpy()
+        y = train_loss_list
+        plt.title('Result Analysis')
+        plt.plot(x, y, color='green', label='loss value')
+        # plt.plot(x, test_acys, color='red', label='training accuracy')
+        plt.legend()  # 显示图例
+
+        plt.xlabel('iteration times')
+        plt.ylabel('rate')
+        plt.show()
 
         self.__w_x = w_x
 
@@ -388,11 +416,13 @@ class FnnAO(NetBase):
         w_x = self.__w_x
         w_y = self.__w_y
 
-        w_y_h = torch.rand(n_smpl_tmp, n_branch).double()
+        # use  w_x
+        w_y_h_cal = torch.empty(n_smpl_tmp, 0).double()
         for i in torch.arange(n_branch):
-            w_y_h[:, i] = h_all[i, :, :].mm(w_x[i, :].unsqueeze(1)).squeeze()
+            w_y_h_brunch = h_all[i, :, :].mm(w_x[i, :, :].t()).squeeze()
+            w_y_h_cal = torch.cat((w_y_h_cal, w_y_h_brunch), 1)
 
-        y_hat = w_y_h.mm(w_y)
+        y_hat = w_y_h_cal.mm(w_y)
         return y_hat
 
     def get_neuron_tree(self):
