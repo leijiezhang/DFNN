@@ -6,8 +6,9 @@ n_kfolds: 5
 n_agents: 5
 n_agents_list: []
 
-n_rules: 10
+n_rules: 5
 n_rules_list: []
+n_hidden_output: 2
 
 dataset_name: 'hrss' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
@@ -19,13 +20,13 @@ dataset_list_all:
    'kc_house', 'motor_temperature', 'quake', 'skills',
    'statlib_calhousing', 'strength', 'telemonitoring', 'yacht']
 
-mu_current: 0.1
+mu_current: 0.01
 mu_list:
   [0.0001, 0.001, 0.01, 0.1]
 mu1_current: 0.01
 mu1_list:
   [0.0001, 0.001, 0.01, 0.1]
-rho: 1
+rho: 0.1
 
 #tool functions
 h_computer: 'normal' # 'base' 'normal'
@@ -35,9 +36,11 @@ rules: 'kmeans' # 'kmeans' 'fuzzyc'
 patition_strategy: 'kmeans'
 
 #feature splitor
-feature_seperator: 'slice_window' # 'slice_window' 'random_pick' 'no_seperate'
+feature_seperator: 'slice_window' # 'stride_window' 'slice_window' 'random_pick' 'no_seperate'
 window_size: 3
 n_level: 2
+# while using stride_window, initiate following parameters
+stride_len: 6 #6 channel
 # while feature_seperator is slice_window, initiate following parameters
 step: 3
 # while feature_seperator is random_pick, initiate following parameters

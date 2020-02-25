@@ -24,6 +24,8 @@ class ParamConfig(object):
         self.n_rules = nrules  # number of rules in stage 1
         self.n_rules_list = []
 
+        self.n_hidden_output = 1
+
         self.dataset_list_all = []
         self.dataset_list = ['CASP']
         self.dataset_name = 'hrss'
@@ -68,6 +70,8 @@ class ParamConfig(object):
 
         self.n_rules = config_content['n_rules']
         self.n_rules_list = config_content['n_rules_list']
+
+        self.n_hidden_output = config_content['n_hidden_output']
 
         self.dataset_list_all = config_content['dataset_list_all']
         self.dataset_list = config_content['dataset_list']
@@ -155,8 +159,11 @@ class ParamConfig(object):
             window_size = config_content['window_size']
             step = config_content['step']
             n_level = config_content['n_level']
-            fea_seperator.set_seperator_by_slice_window(window_size, step,
-                                                        n_level)
+            fea_seperator.set_seperator_by_slice_window(window_size, step, n_level)
+        elif seperator_type == 'stride_window':
+            stride_len = config_content['stride_len']
+            n_level = config_content['n_level']
+            fea_seperator.set_seperator_by_stride_window(stride_len, n_level)
         elif seperator_type == 'random_pick':
             window_size = config_content['window_size']
             n_repeat = config_content['n_repeat_select']

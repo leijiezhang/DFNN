@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import mlp_run, neuron_run, dfnn_kfolds
-from utils import load_data, load_eeg_data
+from utils import load_data
 import torch
 
 

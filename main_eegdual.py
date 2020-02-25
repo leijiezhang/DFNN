@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import dfnn_rules_para_kfold_ao
-from utils import load_data, Logger
+from utils import load_data
 import torch
 import os
 
@@ -15,7 +15,7 @@ para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
-n_rule_list = torch.arange(4, 5, 1)
+n_rule_list = torch.arange(10, 11, 1)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []
@@ -33,7 +33,6 @@ for i in torch.arange(len(param_config.dataset_list)):
     dataset = load_data(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
-    dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
     param_config.log.debug(f"=====starting on {dataset.name}=======")
     loss_fun = None
     if dataset.task == 'C':
@@ -64,15 +63,15 @@ for i in torch.arange(len(param_config.dataset_list)):
     acc_c_test = loss_c_test_mean_mtrx.max()
     best_c_mask = torch.eq(loss_c_test_mean_mtrx, acc_c_test)
 
-    acc_c_train = loss_c_train_mean_mtrx[best_c_mask]
+    acc_c_train = loss_c_train_mean_mtrx[best_c_mask].max()
     acc_c_train_std = loss_c_train_std_mtrx[best_c_mask]
     acc_c_test_std = loss_c_test_std_mtrx[best_c_mask]
 
     acc_d_test = loss_d_test_mean_mtrx.max()
     best_d_mask = torch.eq(loss_d_test_mean_mtrx, acc_d_test)
-    acc_d_train = loss_d_train_mean_mtrx[best_d_mask]
-    acc_d_train_std = loss_d_train_std_mtrx[best_c_mask]
-    acc_d_test_std = loss_d_test_std_mtrx[best_c_mask]
+    acc_d_train = loss_d_train_mean_mtrx[best_d_mask].max()
+    acc_d_train_std = loss_d_train_std_mtrx[best_d_mask]
+    acc_d_test_std = loss_d_test_std_mtrx[best_d_mask]
 
     acc_c_train_arr.append([acc_c_train, acc_c_train_std])
     acc_c_test_arr.append([acc_c_test, acc_c_test_std])
@@ -109,3 +108,4 @@ if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
 data_save_file = f"{data_save_dir}/{param_config.model_name}_{param_config.n_rules}.pt"
 torch.save(save_dict, data_save_file)
+

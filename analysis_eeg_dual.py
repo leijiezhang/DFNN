@@ -2,8 +2,12 @@ import torch
 from utils import Logger
 import os
 import scipy.io as io
+from param_config import ParamConfig
 
-n_rules_list = [3, 6, 9, 12, 15, 18, 21, 24]
+param_config = ParamConfig()
+param_config.config_parse('eegdual_config')
+
+n_rules_list = [3, 6, 9, 12, 15]
 n_subj = 11
 save_dict = dict()
 acc_c_train_list = []
@@ -11,8 +15,7 @@ acc_c_test_list = []
 acc_d_train_list = []
 acc_d_test_list = []
 for i in torch.arange(len(n_rules_list)):
-    dataset_name = f"eegDual_subj{i + 1}"
-    sub_fold = "eeg_dual"
+    sub_fold = "eeg_dual_old"
     dir_dataset = f"./results/{sub_fold}/hdfnn_ao_{n_rules_list[int(i)]}.pt"
     save_dict = torch.load(dir_dataset)
 
@@ -28,20 +31,40 @@ for i in torch.arange(len(n_rules_list)):
             acc_d_train_list[int(j)] = torch.cat((acc_d_train_list[int(j)], save_dict["acc_d_train_list"][int(j)]), 0)
             acc_d_test_list[int(j)] = torch.cat((acc_d_test_list[int(j)], save_dict["acc_d_test_list"][int(j)]), 0)
 
-print('lei')
 acc_c_train_arr = []
 acc_c_test_arr = []
 acc_d_train_arr = []
 acc_d_test_arr = []
 for i in torch.arange(len(acc_c_train_list)):
-    # get the best performance
-    acc_c_test_best = acc_c_test_list[int(i)].max()
-    best_c_mask = torch.eq(acc_c_test_list[int(i)], acc_c_test_best)
-    acc_c_train_best = acc_c_train_list[int(i)][best_c_mask].max()
+    # acc_c_train_tsr = acc_c_train_list[int(i)].squeeze()
+    # acc_c_test_tsr = acc_c_test_list[int(i)].squeeze()
+    # acc_d_train_tsr = acc_d_train_list[int(i)].squeeze()
+    # acc_d_test_tsr = acc_d_test_list[int(i)].squeeze()
 
-    acc_d_test_best = acc_d_test_list[int(i)].max()
-    best_d_mask = torch.eq(acc_d_test_list[int(i)], acc_d_test_best)
-    acc_d_train_best = acc_d_train_list[int(i)][best_d_mask].max()
+    acc_c_train_mean = acc_c_train_list[int(i)].squeeze()
+    acc_c_test_mean = acc_c_test_list[int(i)].squeeze()
+    acc_d_train_mean = acc_d_train_list[int(i)].squeeze()
+    acc_d_test_mean = acc_d_test_list[int(i)].squeeze()
+
+    # # get mean and variance performance
+    # acc_c_train_mean = acc_c_train_tsr.mean(2)
+    # acc_c_test_mean = acc_c_test_tsr.mean(2)
+    # acc_d_train_mean = acc_d_train_tsr.mean(2)
+    # acc_d_test_mean = acc_d_test_tsr.mean(2)
+
+    # acc_c_train_std = acc_c_train_tsr.std(2)
+    # acc_c_test_std = acc_c_test_tsr.std(2)
+    # acc_d_train_std = acc_d_train_tsr.std(2)
+    # acc_d_test_std = acc_d_test_tsr.std(2)
+
+    # get the best performance
+    acc_c_test_best = acc_c_test_mean.max()
+    best_c_mask = torch.eq(acc_c_test_mean, acc_c_test_best)
+    acc_c_train_best = acc_c_train_mean[best_c_mask].max()
+
+    acc_d_test_best = acc_d_test_mean.max()
+    best_d_mask = torch.eq(acc_d_test_mean, acc_d_test_best)
+    acc_d_train_best = acc_d_train_mean[best_d_mask].max()
 
     acc_c_train_arr.append(acc_c_train_best)
     acc_c_test_arr.append(acc_c_test_best)
@@ -72,16 +95,16 @@ save_dict["acc_c_test_std"] = acc_c_test_std
 save_dict["acc_d_train_std"] = acc_d_train_std
 save_dict["acc_d_test_std"] = acc_d_test_std
 
-Logger().info(
+param_config.log.info(
     f"mAp of training data on centralized method: "
     f"{round(float(acc_c_train), 4)}/{round(float(acc_c_train_std), 4)}")
-Logger().info(
+param_config.log.info(
     f"mAp of test data on centralized method: "
     f"{round(float(acc_c_test), 4)}/{round(float(acc_c_test_std), 4)}")
-Logger().info(
+param_config.log.info(
     f"mAp of training data on distributed method: "
     f"{round(float(acc_d_train), 4)}/{round(float(acc_d_train_std), 4)}")
-Logger().info(
+param_config.log.info(
     f"mAp of test data on distributed method:"
     f" {round(float(acc_d_test), 4)}/{round(float(acc_d_test_std), 4)}")
 

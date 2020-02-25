@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import dfnn_rules_kfolds
+from dfnn_run import dfnn_kfolds
 from utils import load_data
 import torch
 
@@ -8,9 +8,7 @@ import torch
 # Dataset configuration
 # init the parameters
 param_config = ParamConfig()
-param_config.config_parse('hrss_config')
-n_rule_list = torch.arange(1, 16, 1)
-param_config.n_rules_list = n_rule_list
+param_config.config_parse('eegeye_config')
 
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
@@ -41,13 +39,10 @@ for i in torch.arange(len(param_config.dataset_list)):
     # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
     #     fuzzy_net_run(param_config, dataset)
 
-    # loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-    #     dfnn_kfolds(param_config, dataset)
+    loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+        dfnn_kfolds(param_config, dataset)
 
     # test_acc, train_losses = mlp_run(param_config, dataset)
-
-    loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
-        dfnn_rules_kfolds(param_config, dataset)
 
     loss_c_train_mean = loss_c_train.mean()
     loss_c_test_mean = loss_c_test.mean()
