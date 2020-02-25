@@ -421,35 +421,39 @@ def dfnn_kfolds(param_config: ParamConfig, dataset: Dataset):
     loss_c_test_tsr = []
     loss_d_train_tsr = []
     loss_d_test_tsr = []
+
+    train_loss_c = 0
+    test_loss_c = 0
+    cfnn_train_loss = 0
+    cfnn_test_loss = 0
     for k in torch.arange(param_config.n_kfolds):
         param_config.patition_strategy.set_current_folds(k)
         train_data, test_data = dataset.get_run_set()
+        if k==0:
+            # if the dataset is like a eeg data, which has trails hold sample blocks
+            if dataset.X.shape.__len__() == 3:
+                # reform training dataset
+                y = torch.empty(0, 1).double()
+                x = torch.empty(0, dataset.X.shape[2]).double()
+                for ii in torch.arange(train_data.Y.shape[0]):
+                    x = torch.cat((x, train_data.X[ii]), 0)
+                    size_smpl_ii = train_data.X[ii].shape[0]
+                    y_tmp = train_data.Y[ii].repeat(size_smpl_ii, 1)
+                    y = torch.cat((y, y_tmp), 0)
+                train_data = Dataset(train_data.name, x, y, train_data.task)
 
-        # if the dataset is like a eeg data, which has trails hold sample blocks
-        if dataset.X.shape.__len__() == 3:
-            # reform training dataset
-            y = torch.empty(0, 1).double()
-            x = torch.empty(0, dataset.X.shape[2]).double()
-            for ii in torch.arange(train_data.Y.shape[0]):
-                x = torch.cat((x, train_data.X[ii]), 0)
-                size_smpl_ii = train_data.X[ii].shape[0]
-                y_tmp = train_data.Y[ii].repeat(size_smpl_ii, 1)
-                y = torch.cat((y, y_tmp), 0)
-            train_data = Dataset(train_data.name, x, y, train_data.task)
-
-            # reform test dataset
-            y = torch.empty(0, 1).double()
-            x = torch.empty(0, dataset.X.shape[2]).double()
-            for ii in torch.arange(test_data.Y.shape[0]):
-                x = torch.cat((x, test_data.X[ii]), 0)
-                size_smpl_ii = test_data.X[ii].shape[0]
-                y_tmp = test_data.Y[ii].repeat(size_smpl_ii, 1)
-                y = torch.cat((y, y_tmp), 0)
-            test_data = Dataset(test_data.name, x, y, test_data.task)
-
-        param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
-        train_loss_c, test_loss_c, cfnn_train_loss, cfnn_test_loss = \
-            hdfnn_run(param_config, train_data, test_data)
+                # reform test dataset
+                y = torch.empty(0, 1).double()
+                x = torch.empty(0, dataset.X.shape[2]).double()
+                for ii in torch.arange(test_data.Y.shape[0]):
+                    x = torch.cat((x, test_data.X[ii]), 0)
+                    size_smpl_ii = test_data.X[ii].shape[0]
+                    y_tmp = test_data.Y[ii].repeat(size_smpl_ii, 1)
+                    y = torch.cat((y, y_tmp), 0)
+                test_data = Dataset(test_data.name, x, y, test_data.task)
+            param_config.log.info(f"start traning at {param_config.patition_strategy.current_fold + 1}-fold!")
+            train_loss_c, test_loss_c, cfnn_train_loss, cfnn_test_loss = \
+                hdfnn_run(param_config, train_data, test_data)
 
         loss_c_train_tsr.append(train_loss_c)
         loss_c_test_tsr.append(test_loss_c)
@@ -605,3 +609,4 @@ def dfnn_rules_para_kfold_ao(param_config: ParamConfig, dataset: Dataset):
         loss_d_test_tsr = torch.cat((loss_d_test_tsr, loss_d_test.unsqueeze(0).double()), 0)
 
     return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
+
