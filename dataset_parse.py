@@ -38,7 +38,7 @@ channel_list_all.append(channel_list)
 
 
 # parse eeg dual dataset
-dataset_name = f"ethylene_co"
+dataset_name = f"ethylene_meth"
 sub_fold = "ethylene"
 # eeg_dataset_parse(dataset_name, sub_fold)
 dataset_parse(dataset_name, sub_fold)

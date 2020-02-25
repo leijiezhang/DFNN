@@ -9,6 +9,8 @@ n_agents_list: []
 n_rules: 5
 n_rules_list: []
 
+n_hidden_output: 20
+
 dataset_name: 'eeg_dual' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
   ['eegDual_subj1', 'eegDual_subj2', 'eegDual_subj3', 'eegDual_subj4', 'eegDual_subj5',

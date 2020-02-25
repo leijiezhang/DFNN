@@ -7,7 +7,7 @@ from param_config import ParamConfig
 param_config = ParamConfig()
 param_config.config_parse('eegdual_config')
 
-n_rules_list = [5]
+n_rules_list = [3, 6, 9, 12, 15]
 n_subj = 11
 save_dict = dict()
 acc_c_train_list = []
@@ -15,8 +15,7 @@ acc_c_test_list = []
 acc_d_train_list = []
 acc_d_test_list = []
 for i in torch.arange(len(n_rules_list)):
-    dataset_name = f"eegDual_subj{i + 1}"
-    sub_fold = "eeg_dual"
+    sub_fold = "eeg_dual_old"
     dir_dataset = f"./results/{sub_fold}/hdfnn_ao_{n_rules_list[int(i)]}.pt"
     save_dict = torch.load(dir_dataset)
 
@@ -37,16 +36,21 @@ acc_c_test_arr = []
 acc_d_train_arr = []
 acc_d_test_arr = []
 for i in torch.arange(len(acc_c_train_list)):
-    acc_c_train_tsr = acc_c_train_list[int(i)].squeeze()
-    acc_c_test_tsr = acc_c_test_list[int(i)].squeeze()
-    acc_d_train_tsr = acc_d_train_list[int(i)].squeeze()
-    acc_d_test_tsr = acc_d_test_list[int(i)].squeeze()
+    # acc_c_train_tsr = acc_c_train_list[int(i)].squeeze()
+    # acc_c_test_tsr = acc_c_test_list[int(i)].squeeze()
+    # acc_d_train_tsr = acc_d_train_list[int(i)].squeeze()
+    # acc_d_test_tsr = acc_d_test_list[int(i)].squeeze()
 
-    # get mean and variance performance
-    acc_c_train_mean = acc_c_train_tsr.mean(2)
-    acc_c_test_mean = acc_c_test_tsr.mean(2)
-    acc_d_train_mean = acc_d_train_tsr.mean(2)
-    acc_d_test_mean = acc_d_test_tsr.mean(2)
+    acc_c_train_mean = acc_c_train_list[int(i)].squeeze()
+    acc_c_test_mean = acc_c_test_list[int(i)].squeeze()
+    acc_d_train_mean = acc_d_train_list[int(i)].squeeze()
+    acc_d_test_mean = acc_d_test_list[int(i)].squeeze()
+
+    # # get mean and variance performance
+    # acc_c_train_mean = acc_c_train_tsr.mean(2)
+    # acc_c_test_mean = acc_c_test_tsr.mean(2)
+    # acc_d_train_mean = acc_d_train_tsr.mean(2)
+    # acc_d_test_mean = acc_d_test_tsr.mean(2)
 
     # acc_c_train_std = acc_c_train_tsr.std(2)
     # acc_c_test_std = acc_c_test_tsr.std(2)

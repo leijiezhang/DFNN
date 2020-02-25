@@ -24,6 +24,8 @@ class ParamConfig(object):
         self.n_rules = nrules  # number of rules in stage 1
         self.n_rules_list = []
 
+        self.n_hidden_output = 1
+
         self.dataset_list_all = []
         self.dataset_list = ['CASP']
         self.dataset_name = 'hrss'
@@ -68,6 +70,8 @@ class ParamConfig(object):
 
         self.n_rules = config_content['n_rules']
         self.n_rules_list = config_content['n_rules_list']
+
+        self.n_hidden_output = config_content['n_hidden_output']
 
         self.dataset_list_all = config_content['dataset_list_all']
         self.dataset_list = config_content['dataset_list']
