@@ -15,7 +15,7 @@ para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
-n_rule_list = torch.arange(11, 16, 1)
+n_rule_list = torch.arange(4, 5, 1)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []

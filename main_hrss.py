@@ -1,6 +1,6 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
-from dfnn_run import dfnn_rules_para_kfold
+from dfnn_run import dfnn_rules_para_kfold_ao
 from utils import load_data, Logger
 import torch
 import os
@@ -11,9 +11,9 @@ import os
 param_config = ParamConfig()
 param_config.config_parse('hrss_config')
 
-para_mu_list = torch.arange(-10, 1, 1).double()
-param_config.para_mu_list = torch.pow(2, para_mu_list).double()
-param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
+para_mu_list = torch.arange(-5, 6, 1).double()
+param_config.para_mu_list = torch.pow(10, para_mu_list).double()
+param_config.para_mu1_list = torch.pow(10, para_mu_list).double()
 
 n_rule_list = torch.arange(1, 11, 1)
 param_config.n_rules_list = n_rule_list
@@ -44,7 +44,7 @@ for i in torch.arange(len(param_config.dataset_list)):
         param_config.loss_fun = RMSELoss()
 
     acc_c_train_tsr, acc_c_test_tsr, acc_d_train_tsr, acc_d_test_tsr = \
-        dfnn_rules_para_kfold(param_config, dataset)
+        dfnn_rules_para_kfold_ao(param_config, dataset)
 
     acc_c_train_list.append(acc_c_train_tsr)
     acc_c_test_list.append(acc_c_test_tsr)
@@ -71,8 +71,8 @@ for i in torch.arange(len(param_config.dataset_list)):
     acc_d_test = loss_d_test_mean_mtrx.max()
     best_d_mask = torch.eq(loss_d_test_mean_mtrx, acc_d_test)
     acc_d_train = loss_d_train_mean_mtrx[best_d_mask]
-    acc_d_train_std = loss_d_train_std_mtrx[best_c_mask]
-    acc_d_test_std = loss_d_test_std_mtrx[best_c_mask]
+    acc_d_train_std = loss_d_train_std_mtrx[best_d_mask]
+    acc_d_test_std = loss_d_test_std_mtrx[best_d_mask]
 
     acc_c_train_arr.append([acc_c_train, acc_c_train_std])
     acc_c_test_arr.append([acc_c_test, acc_c_test_std])
