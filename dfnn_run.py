@@ -8,6 +8,7 @@ from sklearn.metrics import mean_squared_error
 import torch.nn as nn
 import torch
 from model import MLP
+from datetime import datetime
 
 
 def neuron_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
@@ -240,7 +241,11 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     kwargs['seperator'] = param_config.fea_seperator
     kwargs['dataset_name'] = param_config.dataset_name
 
+    start_time = datetime.now()
     fuzy_tree_c.forward(**kwargs)
+    end_time = datetime.now()
+    param_config.log.info(f"Runing Time on centralized method: {(end_time - start_time).seconds}")
+
     y_hat_train = fuzy_tree_c.predict(train_data, param_config.fea_seperator)
     train_loss_c = param_config.loss_fun.forward(train_data.Y, y_hat_train)
     y_hat_test = fuzy_tree_c.predict(test_data, param_config.fea_seperator)
@@ -260,7 +265,11 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     neuron_d = NeuronD(param_config.rules, param_config.h_computer,
                        param_config.fnn_solver)
     fuzy_tree_d = type(net)(neuron_d)
+
+    start_time = datetime.now()
     fuzy_tree_d.forward(**kwargs)
+    end_time = datetime.now()
+    param_config.log.info(f"Runing Time on distributed method: {(end_time - start_time).seconds}")
 
     y_hat_train = fuzy_tree_d.predict(train_data, param_config.fea_seperator)
     cfnn_train_loss = param_config.loss_fun.forward(train_data.Y, y_hat_train)
@@ -339,6 +348,37 @@ def dfnn_para_ao(param_config: ParamConfig, train_data: Dataset, test_data: Data
             loss_c_test_mu_tsr[i, j] = loss_c_test.double()
             loss_d_train_mu_tsr[i, j] = loss_d_train.double()
             loss_d_test_mu_tsr[i, j] = loss_d_test.double()
+
+    return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
+
+
+def dfnn_rules_ao(param_config: ParamConfig, train_data: Dataset, test_data: Dataset):
+    """
+    todo: consider all rule number in para_mu_list into algorithm
+    :param param_config:
+    :param train_data: dataset
+    :param test_data: dataset
+    :return:
+    """
+    n_rule_list = param_config.n_rules_list
+    n_list_rule = n_rule_list.shape[0]
+
+    loss_c_train_mu_tsr = [torch.zeros(n_list_rule).double()]
+    loss_c_test_mu_tsr = torch.zeros(n_list_rule).double()
+    loss_d_train_mu_tsr = torch.zeros(n_list_rule).double()
+    loss_d_test_mu_tsr = torch.zeros(n_list_rule).double()
+
+    for i in torch.arange(n_list_rule):
+        n_rules = n_rule_list[int(i)]
+        param_config.log.error(f"running at rule number: {n_rules}")
+        param_config.n_rules = n_rules
+
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+            hdfnn_run(param_config, train_data, test_data)
+        loss_c_train_mu_tsr[i] = loss_c_train.squeeze().double()
+        loss_c_test_mu_tsr[i] = loss_c_test.squeeze().double()
+        loss_d_train_mu_tsr[i] = loss_d_train.squeeze().double()
+        loss_d_test_mu_tsr[i] = loss_d_test.squeeze().double()
 
     return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
 

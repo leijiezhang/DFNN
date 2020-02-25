@@ -8,6 +8,7 @@ n_agents_list: []
 
 n_rules: 60
 n_rules_list: []
+n_hidden_output: 2
 
 dataset_name: 'ethylene' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:

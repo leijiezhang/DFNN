@@ -31,6 +31,8 @@ class FeaSeperator(object):
             n_fea = 20
         elif self.data_name.find('eegDual_subj') != -1:
             n_fea = 24
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 16
 
         seperator = slide_window(n_fea, window_size, step, n_level)
         self.__seperator = seperator
@@ -52,6 +54,8 @@ class FeaSeperator(object):
             n_fea = 20
         elif self.data_name.find('eegDual_subj') != -1:
             n_fea = 24
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 16
 
         seperator = stride_window(n_fea, stride_len, n_level)
         self.__seperator = seperator
@@ -73,6 +77,8 @@ class FeaSeperator(object):
             n_fea = 20
         elif self.data_name.find('eegDual_subj') != -1:
             n_fea = 24
+        elif self.data_name.find('eegDual_subj') != -1:
+            n_fea = 16
 
         seperator = random_pick(n_fea, window_size, n_repeat, n_level)
 
