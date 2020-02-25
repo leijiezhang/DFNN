@@ -548,7 +548,7 @@ class FnnAO(NetBase):
         loss = 100
         run_th = 0.0001
         run_epoch = 1
-        n_epoch = 300
+        n_epoch = 5
         train_loss_list = []
         # while diff > run_th and run_epoch < n_epoch:
         while run_epoch < n_epoch:
