@@ -4,7 +4,7 @@ import os
 import scipy.io as io
 
 n_subj = 1
-n_rules_list = [10, 20]
+n_rules_list = [10]
 save_dict = dict()
 acc_c_train_list = []
 acc_c_test_list = []
@@ -89,12 +89,12 @@ Logger().info(
     f"mAp of test data on distributed method:"
     f" {round(float(acc_d_test_mean_best), 4)}/{round(float(acc_d_test_std_best), 4)}")
 
-data_save_dir = f"./results/eeg_dual/"
+data_save_dir = f"./results/hrss/"
 
-if not os.path.exists(data_save_dir):
-    os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}/h_dfnn_ao_final.pt"
-torch.save(save_dict, data_save_file)
+# if not os.path.exists(data_save_dir):
+#     os.makedirs(data_save_dir)
+# data_save_file = f"{data_save_dir}/h_dfnn_ao_final.pt"
+# torch.save(save_dict, data_save_file)
 
 acc_c_train_tsr = acc_c_train_tsr.numpy()
 acc_c_test_tsr = acc_c_test_tsr.numpy()

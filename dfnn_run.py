@@ -228,10 +228,19 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
                        param_config.fnn_solver)
 
     fuzy_tree_c = type(net)(neuron_c)
-    fuzy_tree_c.forward(data=train_data, para_mu=param_config.para_mu_current,
-                        para_mu1=param_config.para_mu1_current,
-                        para_rho=param_config.para_rho, n_agents=param_config.n_agents,
-                        n_rules=param_config.n_rules, seperator=param_config.fea_seperator)
+    kwargs = dict()
+    kwargs['train_data'] = train_data
+    kwargs['test_data'] = test_data
+    kwargs['para_mu'] = param_config.para_mu_current
+    kwargs['n_hidden_output'] = param_config.n_hidden_output
+    kwargs['para_mu1'] = param_config.para_mu1_current
+    kwargs['para_rho'] = param_config.para_rho
+    kwargs['n_agents'] = param_config.n_agents
+    kwargs['n_rules'] = param_config.n_rules
+    kwargs['seperator'] = param_config.fea_seperator
+    kwargs['dataset_name'] = param_config.dataset_name
+
+    fuzy_tree_c.forward(**kwargs)
     y_hat_train = fuzy_tree_c.predict(train_data, param_config.fea_seperator)
     train_loss_c = param_config.loss_fun.forward(train_data.Y, y_hat_train)
     y_hat_test = fuzy_tree_c.predict(test_data, param_config.fea_seperator)
@@ -251,10 +260,7 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     neuron_d = NeuronD(param_config.rules, param_config.h_computer,
                        param_config.fnn_solver)
     fuzy_tree_d = type(net)(neuron_d)
-    fuzy_tree_d.forward(data=train_data, para_mu=param_config.para_mu_current,
-                        para_mu1=param_config.para_mu1_current,
-                        para_rho=param_config.para_rho, n_agents=param_config.n_agents,
-                        n_rules=param_config.n_rules, seperator=param_config.fea_seperator)
+    fuzy_tree_d.forward(**kwargs)
 
     y_hat_train = fuzy_tree_d.predict(train_data, param_config.fea_seperator)
     cfnn_train_loss = param_config.loss_fun.forward(train_data.Y, y_hat_train)
@@ -500,6 +506,36 @@ def dfnn_para_kfolds(param_config: ParamConfig, dataset: Dataset):
     for i in torch.arange(n_mu_list):
         param_config.para_mu_current = param_config.para_mu_list[i]
         param_config.log.info(f"running param mu: {param_config.para_mu_current}")
+
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+            dfnn_kfolds(param_config, dataset)
+        loss_c_train_mu_tsr[i, :] = loss_c_train.squeeze().double()
+        loss_c_test_mu_tsr[i, :] = loss_c_test.squeeze().double()
+        loss_d_train_mu_tsr[i, :] = loss_d_train.squeeze().double()
+        loss_d_test_mu_tsr[i, :] = loss_d_test.squeeze().double()
+
+    return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
+
+
+def dfnn_rules_kfolds(param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: consider all rules in para_mu_list into algorithm
+    :param param_config:
+    :param dataset: training dataset
+    :return:
+    """
+    n_rule_list = param_config.n_rules_list
+    n_list_rule = n_rule_list.shape[0]
+
+    loss_c_train_mu_tsr = torch.zeros(n_list_rule, param_config.n_kfolds).double()
+    loss_c_test_mu_tsr = torch.zeros(n_list_rule, param_config.n_kfolds).double()
+    loss_d_train_mu_tsr = torch.zeros(n_list_rule, param_config.n_kfolds).double()
+    loss_d_test_mu_tsr = torch.zeros(n_list_rule, param_config.n_kfolds).double()
+
+    for i in torch.arange(n_list_rule):
+        n_rules = n_rule_list[int(i)]
+        param_config.log.error(f"running at rule number: {n_rules}")
+        param_config.n_rules = n_rules
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
             dfnn_kfolds(param_config, dataset)
