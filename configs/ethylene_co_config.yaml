@@ -12,7 +12,7 @@ n_hidden_output: 2
 
 dataset_name: 'ethylene' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
-  ['ethylene_co', 'ethylene_eth'] #['ethylene_co', 'ethylene_eth', 'ethylene_meth']
+  ['ethylene_eth'] #['ethylene_co', 'ethylene_eth', 'ethylene_meth']
 dataset_list_all:
   ['abalone', 'airfoil', 'bikesharing',
    'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',

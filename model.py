@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from math_utils import cal_fc_w
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 import abc
 import os
@@ -548,7 +548,7 @@ class FnnAO(NetBase):
         loss = 100
         run_th = 0.0001
         run_epoch = 1
-        n_epoch = 300
+        n_epoch = 5
         train_loss_list = []
         # while diff > run_th and run_epoch < n_epoch:
         while run_epoch < n_epoch:
@@ -583,16 +583,16 @@ class FnnAO(NetBase):
             print(f"Loss of AO: {loss}")
             run_epoch = run_epoch + 1
 
-        x = torch.linspace(1, len(train_loss_list) + 1, len(train_loss_list)).numpy()
-        y = train_loss_list
-        plt.title('Result Analysis')
-        plt.plot(x, y, color='green', label='loss value')
-        # plt.plot(x, test_acys, color='red', label='training accuracy')
-        plt.legend()  # 显示图例
-
-        plt.xlabel('iteration times')
-        plt.ylabel('rate')
-        plt.show()
+        # x = torch.linspace(1, len(train_loss_list) + 1, len(train_loss_list)).numpy()
+        # y = train_loss_list
+        # plt.title('Result Analysis')
+        # plt.plot(x, y, color='green', label='loss value')
+        # # plt.plot(x, test_acys, color='red', label='training accuracy')
+        # plt.legend()  # 显示图例
+        #
+        # plt.xlabel('iteration times')
+        # plt.ylabel('rate')
+        # plt.show()
         self.__w_x = w_x
 
         self.__w_y = w_y
