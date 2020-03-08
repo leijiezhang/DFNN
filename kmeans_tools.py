@@ -55,8 +55,8 @@ class KmeansUtils(object):
 
             errors.append(torch.norm(stop_crtn))
 
-            if errors[int(i)] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
-                break
+            # if errors[int(i)] < torch.sqrt(torch.tensor(n_agents).double()) * admm_abstol:
+            #     break
         center_optimal = center_global
 
         return center_optimal, torch.tensor(errors)

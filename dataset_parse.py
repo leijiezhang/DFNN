@@ -38,8 +38,8 @@ channel_list_all.append(channel_list)
 
 
 # parse eeg dual dataset
-dataset_name = f"ethylene_meth"
-sub_fold = "ethylene"
+dataset_name = f"navidation_lidar"
+sub_fold = "navi_lidar"
 # eeg_dataset_parse(dataset_name, sub_fold)
 dataset_parse(dataset_name, sub_fold)
 # for i in torch.arange(11):
