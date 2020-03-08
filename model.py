@@ -41,12 +41,13 @@ class TreeNet(NetBase):
         self.__neuron_tree: List[List[type(neuron_seed)]] = []
 
     def forward(self, **kwargs):
-        data: Dataset = kwargs['data']
+        data: Dataset = kwargs['train_data']
         if 'seperator' not in kwargs:
             seperator = FeaSeperator(data.name).get_seperator()
         else:
             seperator: FeaSeperator = kwargs['seperator']
         fea_seperator = seperator.get_seperator()
+        seperator.generate_n_rule_tree(kwargs['n_rules'])
         n_rules_tree = seperator.get_n_rule_tree()
 
         data_tmp = data
@@ -253,6 +254,7 @@ class FnnAO(NetBase):
         para_mu1 = kwargs['para_mu1']
 
         fea_seperator = seperator.get_seperator()
+        seperator.generate_n_rule_tree(kwargs['n_rules'])
         n_rules_tree = seperator.get_n_rule_tree()
         neuron_seed = self.get_neuron_seed()
 
@@ -380,16 +382,16 @@ class FnnAO(NetBase):
             run_epoch = run_epoch + 1
             # print(f"Loss of AO: {loss}  w_y: {w_y.squeeze()[1:5]}")
 
-        x = torch.linspace(1, len(train_loss_list) + 1, len(train_loss_list)).numpy()
-        y = train_loss_list
-        plt.title('Result Analysis')
-        plt.plot(x, y, color='green', label='loss value')
-        # plt.plot(x, test_acys, color='red', label='training accuracy')
-        plt.legend()  # 显示图例
-
-        plt.xlabel('iteration epochs')
-        plt.ylabel('loss value')
-        plt.show()
+        # x = torch.linspace(1, len(train_loss_list) + 1, len(train_loss_list)).numpy()
+        # y = train_loss_list
+        # plt.title('Result Analysis')
+        # plt.plot(x, y, color='green', label='loss value')
+        # # plt.plot(x, test_acys, color='red', label='training accuracy')
+        # plt.legend()  # 显示图例
+        #
+        # plt.xlabel('iteration epochs')
+        # plt.ylabel('loss value')
+        # plt.show()
 
         self.__w_x = w_x
         self.__w_y = w_y

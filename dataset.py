@@ -1,7 +1,6 @@
 import torch
 from typing import List
 from torch.utils.data import Dataset as Dataset_nn
-from math_utils import mapminmax
 
 
 class Dataset(object):
@@ -30,13 +29,6 @@ class Dataset(object):
         # centralized partition strategies
         self.partitions = []
         self.__current_partition = 0
-
-    def normalize(self, l_range: torch.int, u_range: int, flag=None):
-        self.X = mapminmax(self.X, l_range, u_range)
-        if flag is not None:
-            d: torch.Tensor = torch.sum(self.X, 1)
-            d = d.repeat(1, self.X.shape[1])
-            self.X = self.X / d
 
     def generate_n_partitions(self, n, partition_strategy):
 
