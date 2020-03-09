@@ -250,7 +250,7 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     train_loss_c = param_config.loss_fun.forward(train_data.Y, y_hat_train)
     y_hat_test = fuzy_tree_c.predict(test_data, param_config.fea_seperator)
     test_loss_c = param_config.loss_fun.forward(test_data.Y, y_hat_test)
-    fuzy_tree_c.clear()
+    # fuzy_tree_c.clear()
 
     if test_data.task == 'C':
         param_config.log.info(f"Accuracy of training data on centralized method: {train_loss_c}")
@@ -275,7 +275,7 @@ def hdfnn_run(param_config: ParamConfig, train_data: Dataset, test_data: Dataset
     cfnn_train_loss = param_config.loss_fun.forward(train_data.Y, y_hat_train)
     y_hat_test = fuzy_tree_d.predict(test_data, param_config.fea_seperator)
     cfnn_test_loss = param_config.loss_fun.forward(test_data.Y, y_hat_test)
-    fuzy_tree_d.clear()
+    # fuzy_tree_d.clear()
 
     if test_data.task == 'C':
         param_config.log.info(f"Accuracy of training data on distributed method: {cfnn_train_loss}")
