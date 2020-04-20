@@ -9,7 +9,7 @@ import torch
 # init the parameters
 param_config = ParamConfig()
 param_config.config_parse('navi_config')
-n_rule_list = torch.linspace(50, 51, 1)
+n_rule_list = torch.linspace(250, 251, 1)
 param_config.n_rules_list = n_rule_list
 
 for i in torch.arange(len(param_config.dataset_list)):
