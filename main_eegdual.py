@@ -15,7 +15,7 @@ para_mu_list = torch.arange(-10, 1, 1).double()
 param_config.para_mu_list = torch.pow(2, para_mu_list).double()
 param_config.para_mu1_list = torch.pow(2, para_mu_list).double()
 
-n_rule_list = torch.arange(10, 11, 1)
+n_rule_list = torch.arange(3, 16, 3)
 param_config.n_rules_list = n_rule_list
 
 acc_c_train_arr = []
@@ -27,7 +27,9 @@ acc_c_train_list = []
 acc_c_test_list = []
 acc_d_train_list = []
 acc_d_test_list = []
-for i in torch.arange(len(param_config.dataset_list)):
+dataset_file = param_config.get_cur_dataset(0)
+# for i in torch.arange(len(param_config.dataset_list)):
+for i in [0, 1]:
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
     dataset = load_data(dataset_file, param_config.dataset_name)
@@ -106,6 +108,6 @@ data_save_dir = f"./results/{param_config.dataset_name}"
 
 if not os.path.exists(data_save_dir):
     os.makedirs(data_save_dir)
-data_save_file = f"{data_save_dir}/{param_config.model_name}_{param_config.n_rules}.pt"
+data_save_file = f"{data_save_dir}/{dataset_file}_{param_config.model_name}_{param_config.n_rules}.pt"
 torch.save(save_dict, data_save_file)
 
