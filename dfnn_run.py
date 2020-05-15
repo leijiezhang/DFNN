@@ -557,6 +557,36 @@ def dfnn_para_kfolds(param_config: ParamConfig, dataset: Dataset):
     return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
 
 
+def dfnn_para_kfolds_ao_s(param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: consider all parameters diagnally in para_mu_list into algorithm
+    :param param_config:
+    :param dataset: training dataset
+    :return:
+    """
+    n_mu_list = param_config.para_mu_list.shape[0]
+
+    loss_c_train_mu_tsr = torch.zeros(n_mu_list, param_config.n_kfolds).double()
+    loss_c_test_mu_tsr = torch.zeros(n_mu_list, param_config.n_kfolds).double()
+    loss_d_train_mu_tsr = torch.zeros(n_mu_list, param_config.n_kfolds).double()
+    loss_d_test_mu_tsr = torch.zeros(n_mu_list, param_config.n_kfolds).double()
+
+    for i in torch.arange(n_mu_list):
+        param_config.para_mu_current = param_config.para_mu_list[i]
+        param_config.para_mu1_current = param_config.para_mu_list[i]
+        param_config.log.info(f"running param mu: {param_config.para_mu_current}")
+        param_config.log.info(f"running param mu1: {param_config.para_mu1_current}")
+
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+            dfnn_kfolds(param_config, dataset)
+        loss_c_train_mu_tsr[i, :] = loss_c_train.squeeze().double()
+        loss_c_test_mu_tsr[i, :] = loss_c_test.squeeze().double()
+        loss_d_train_mu_tsr[i, :] = loss_d_train.squeeze().double()
+        loss_d_test_mu_tsr[i, :] = loss_d_test.squeeze().double()
+
+    return loss_c_train_mu_tsr, loss_c_test_mu_tsr, loss_d_train_mu_tsr, loss_d_test_mu_tsr
+
+
 def dfnn_rules_kfolds(param_config: ParamConfig, dataset: Dataset):
     """
     todo: consider all rules in para_mu_list into algorithm
@@ -627,7 +657,6 @@ def dfnn_rules_para_kfold(param_config: ParamConfig, dataset: Dataset):
     :return:
     """
     n_mu_list = param_config.para_mu_list.shape[0]
-    n_mu1_list = param_config.para_mu1_list.shape[0]
 
     loss_c_train_tsr = torch.empty(0, n_mu_list,  param_config.n_kfolds).double().double()
     loss_c_test_tsr = torch.empty(0, n_mu_list, param_config.n_kfolds).double().double()
@@ -642,6 +671,37 @@ def dfnn_rules_para_kfold(param_config: ParamConfig, dataset: Dataset):
 
         loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
             dfnn_para_kfolds(param_config, dataset)
+
+        loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
+        loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
+        loss_d_train_tsr = torch.cat((loss_d_train_tsr, loss_d_train.unsqueeze(0).double()), 0)
+        loss_d_test_tsr = torch.cat((loss_d_test_tsr, loss_d_test.unsqueeze(0).double()), 0)
+
+    return loss_c_train_tsr, loss_c_test_tsr, loss_d_train_tsr, loss_d_test_tsr
+
+
+def dfnn_rules_para_kfold_ao_s(param_config: ParamConfig, dataset: Dataset):
+    """
+    todo: this method is to calculate different rule numbers on distribute fuzzy Neuron network iterately
+    :param param_config:
+    :param dataset: dataset
+    :return:
+    """
+    n_mu_list = param_config.para_mu_list.shape[0]
+
+    loss_c_train_tsr = torch.empty(0, n_mu_list,  param_config.n_kfolds).double().double()
+    loss_c_test_tsr = torch.empty(0, n_mu_list, param_config.n_kfolds).double().double()
+    loss_d_train_tsr = torch.empty(0, n_mu_list, param_config.n_kfolds).double().double()
+    loss_d_test_tsr = torch.empty(0, n_mu_list, param_config.n_kfolds).double().double()
+
+    n_rule_list = param_config.n_rules_list
+    for i in torch.arange(n_rule_list.shape[0]):
+        n_rules = n_rule_list[int(i)]
+        param_config.log.error(f"running at rule number: {n_rules}")
+        param_config.n_rules = n_rules
+
+        loss_c_train, loss_c_test, loss_d_train, loss_d_test = \
+            dfnn_para_kfolds_ao_s(param_config, dataset)
 
         loss_c_train_tsr = torch.cat((loss_c_train_tsr, loss_c_train.unsqueeze(0).double()), 0)
         loss_c_test_tsr = torch.cat((loss_c_test_tsr, loss_c_test.unsqueeze(0).double()), 0)
