@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+from sklearn.metrics import mean_squared_error
 import abc
 
 
@@ -43,7 +44,7 @@ class MSELoss(LossFunc):
         self.eps = eps
 
     def forward(self, y, yhat):
-        loss = torch.norm(yhat - y).pow(2) / (y.shape[0])
+        loss = mean_squared_error(y, yhat)
         return loss
 
 
