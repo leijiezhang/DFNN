@@ -6,7 +6,7 @@ from sklearn.linear_model import Ridge, RidgeCV
 from sklearn.linear_model import Lasso,LassoCV,LassoLarsCV
 from dfnn_run import hdfnn_run
 from sklearn.metrics import mean_squared_error
-from utils import load_data
+from utils import load_data_mat
 from math_utils import mapminmax
 from sklearn.svm import SVR
 import torch
@@ -20,7 +20,7 @@ param_config.config_parse('ad_config')
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
-    dataset = load_data(dataset_file, param_config.dataset_name)
+    dataset = load_data_mat(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
     param_config.patition_strategy.set_current_folds(0)
     train_data, test_data = dataset.get_run_set()
@@ -106,8 +106,8 @@ for i in torch.arange(len(param_config.dataset_list)):
     param_config.log.info(f"polynomial regression test: {loss_tmp}")
 
     # ===============rbf svr===========
-    param_config.log.info(f"svm rbf running param gamma: {param_config.para_mu_current}")
-    param_config.log.info(f"svm rbf running param c: {param_config.para_mu1_current}")
+    # param_config.log.info(f"svm rbf running param gamma: {param_config.para_mu_current}")
+    # param_config.log.info(f"svm rbf running param c: {param_config.para_mu1_current}")
     svr = SVR(kernel='rbf', gamma=0.01, C=0.01)
     # 训练
     svr.fit(train_data.X.numpy(), train_data.Y.numpy().ravel())
@@ -119,7 +119,7 @@ for i in torch.arange(len(param_config.dataset_list)):
     param_config.log.info(f"loss of test data using rbf SVR: {test_acc}")
 
     # ===============rbf svr===========
-    param_config.log.info(f"svm lin running param c: {param_config.para_mu1_current}")
+    # param_config.log.info(f"svm lin running param c: {param_config.para_mu1_current}")
     svr = SVR(kernel='linear', C=0.01)
     # 训练
     svr.fit(train_data.X.numpy(), train_data.Y.numpy().ravel())

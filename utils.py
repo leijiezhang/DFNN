@@ -33,6 +33,31 @@ def load_data(dataset_str, sub_fold):
     return dataset
 
 
+def load_data_mat(dataset_str, sub_fold):
+    dir_dataset = f"./datasets/{sub_fold}/{dataset_str}.mat"
+    load_data = sio.loadmat(dir_dataset)
+    dataset_name = load_data['name']
+    x: torch.Tensor = torch.tensor(load_data['X'])
+    y: torch.Tensor = torch.tensor(load_data['Y'])
+
+    if len(y.shape) == 1:
+        y = y.unsqueeze(1)
+
+    task = load_data['task']
+    dataset = Dataset(dataset_name, x, y, task)
+
+    if 'Y_r' in load_data:
+        y_r: torch.Tensor = load_data['Y_r']
+        dataset.Y_r = y_r
+
+    if 'seperator' in load_data:
+        seperator = load_data['seperator']
+        dataset.seperator = seperator
+
+    # dataset.normalize(-1, 1)
+    return dataset
+
+
 def dataset_parse(dataset_name, sub_fold):
     """
     todo: parse dataset from .mat to .pt

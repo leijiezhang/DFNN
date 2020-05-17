@@ -6,13 +6,13 @@ n_kfolds: 5
 n_agents: 5
 n_agents_list: []
 
-n_rules: 60
+n_rules: 10
 n_rules_list: []
 n_hidden_output: 2
 
 dataset_name: 'ad' # each kind of dataset has a same prefix name, dataset is the prefix
 dataset_list:
-  ['ad1_1', 'ad1_3', 'ad1_5', 'ad2_1', 'ad2_3', 'ad2_5', 'ad3_1', 'ad3_3', 'ad3_5']
+  ['ad1_10', 'ad1_20', 'ad1_30', 'ad5_10', 'ad5_20', 'ad5_30', 'ad10_10', 'ad10_20', 'ad10_30']
 dataset_list_all:
   ['abalone', 'airfoil', 'bikesharing',
    'blog', 'bodyfat', 'CASP', 'CCPP', 'eegDual_sub1',

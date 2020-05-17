@@ -1,7 +1,7 @@
 from param_config import ParamConfig
 from loss_utils import RMSELoss, LikelyLoss
 from dfnn_run import dfnn_rules_para_kfold_ao_s
-from utils import load_data
+from utils import load_data_mat
 import torch
 import os
 import scipy.io as io
@@ -31,7 +31,7 @@ acc_d_test_list = []
 for i in torch.arange(len(param_config.dataset_list)):
     dataset_file = param_config.get_cur_dataset(int(i))
     # load dataset
-    dataset = load_data(dataset_file, param_config.dataset_name)
+    dataset = load_data_mat(dataset_file, param_config.dataset_name)
     dataset.generate_n_partitions(param_config.n_run, param_config.patition_strategy)
 
     param_config.log.debug(f"=====starting on {dataset.name}=======")
